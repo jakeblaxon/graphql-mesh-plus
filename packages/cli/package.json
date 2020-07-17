@@ -1,0 +1,26 @@
+{
+  "name": "@jakeblaxon-graphql-mesh/cli",
+  "version": "0.2.19",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "bin": {
+    "mesh": "dist/index.js",
+    "gql-mesh": "dist/index.js",
+    "graphql-mesh": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "graphql": "*"
+  },
+  "dependencies": {
+    "@graphql-mesh/cli": "^0.2.13",
+    "@jakeblaxon-graphql-mesh/runtime": "^0.2.18",
+    "node-eval": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.7"
+  }
+}
