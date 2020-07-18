@@ -1,0 +1,25 @@
+{
+  "name": "@jakeblaxon-graphql-mesh/handler-mesh",
+  "version": "0.2.19",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "graphql": "*"
+  },
+  "dependencies": {
+    "@graphql-mesh/runtime": "^0.2.13",
+    "@graphql-mesh/types": "^0.2.13",
+    "@jakeblaxon-graphql-mesh/runtime": "^0.2.19"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  }
+}
