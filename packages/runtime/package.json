@@ -1,6 +1,6 @@
 {
   "name": "@jakeblaxon-graphql-mesh/runtime",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -12,7 +12,15 @@
   },
   "dependencies": {
     "@graphql-mesh/runtime": "^0.2.13",
-    "cosmiconfig": "^6.0.0"
+    "@graphql-mesh/types": "^0.2.13",
+    "@graphql-mesh/utils": "^0.2.13",
+    "@graphql-tools/graphql-file-loader": "^6.0.14",
+    "@graphql-tools/load": "^6.0.14",
+    "@graphql-tools/merge": "^6.0.14",
+    "@graphql-tools/utils": "^6.0.14",
+    "cosmiconfig": "^6.0.0",
+    "lodash": "^4.17.19",
+    "param-case": "^3.0.3"
   },
   "devDependencies": {
     "typescript": "^3.9.7"
