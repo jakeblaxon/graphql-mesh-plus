@@ -15,8 +15,7 @@ var filename = require.resolve("@graphql-mesh/cli")
 readModuleFile(filename, function (err: any, words: string) {
   words = words.replace(
     "const runtime = require('@graphql-mesh/runtime');",
-    "const runtime = require('@graphql-mesh/runtime');"
-    + "\nruntime.findAndParseConfig = require('@jakeblaxon-graphql-mesh/runtime').findAndParseConfig;"
+    "const runtime = require('@jakeblaxon-graphql-mesh/runtime');"
   );
   module.exports = nodeEval(words, filename);
 });

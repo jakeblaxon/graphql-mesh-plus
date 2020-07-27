@@ -1,12 +1,12 @@
 import { GraphQLSchema } from "graphql";
 import { wrapSchema } from "@graphql-tools/wrap";
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { BuildMeshOptions, MeshSource } from "./types";
+import { GetMeshOptions, MeshSource } from "./types";
 
 export const MESH_CONTEXT_SYMBOL = Symbol("isMeshContext");
 
-export async function buildMesh(
-  options: BuildMeshOptions
+export async function getMesh(
+  options: GetMeshOptions
 ): Promise<{
   schema: GraphQLSchema;
   contextBuilder: (initialContextValue?: any) => Promise<Record<string, any>>;

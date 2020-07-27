@@ -8,7 +8,7 @@ import {
   MeshTransform,
   MeshMerger,
   MeshPlugin,
-  BuildMeshOptions,
+  GetMeshOptions,
 } from "./types";
 
 export async function findAndParseConfig(options?: {
@@ -50,7 +50,7 @@ function envVarLoader(ext: ".json" | ".yaml" | ".js") {
 
 export async function processConfig(
   config: MeshConfig
-): Promise<BuildMeshOptions> {
+): Promise<GetMeshOptions> {
   const [sources, merger, transforms] = await Promise.all([
     Promise.all(config.sources.map((sourceConfig) => loadSource(sourceConfig))),
     loadMerger(config.merger),

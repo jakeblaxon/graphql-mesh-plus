@@ -46,7 +46,7 @@ export type MeshMerger = {
   merge: (schemas: GraphQLSchema[]) => Promise<GraphQLSchema> | GraphQLSchema;
 };
 
-export type BuildMeshOptions = {
+export type GetMeshOptions = {
   sources: MeshSource[];
   merger?: MeshMerger;
   transforms?: MeshTransform[];
