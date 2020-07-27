@@ -3,12 +3,9 @@ import { loadFromModuleExportExpression } from "@graphql-mesh/utils";
 import {
   MeshConfig,
   PluginConfig,
-  MeshSource,
-  MeshHandler,
-  MeshTransform,
-  MeshMerger,
   MeshPlugin,
   GetMeshOptions,
+  MeshPluginFn,
 } from "./types";
 
 export async function findAndParseConfig(options?: {
@@ -51,69 +48,71 @@ function envVarLoader(ext: ".json" | ".yaml" | ".js") {
 export async function processConfig(
   config: MeshConfig
 ): Promise<GetMeshOptions> {
+  const paths = (config.paths || []).reduce(
+    (accum, path) => accum.set(Object.keys(path)[0], Object.values(path)[0]),
+    new Map()
+  );
   const [sources, merger, transforms] = await Promise.all([
-    Promise.all(config.sources.map((sourceConfig) => loadSource(sourceConfig))),
-    loadMerger(config.merger),
-    loadTransforms(config.transforms),
+    Promise.all(
+      config.mesh.sources.map((sourceConfig) => loadSource(sourceConfig))
+    ),
+    loadMerger(config.mesh.merger),
+    loadTransforms(config.mesh.transforms),
   ]);
+
+  async function loadSource(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
+    const [handler, transforms] = await Promise.all([
+      loadHandler(sourceConfig.handler),
+      loadTransforms(sourceConfig.transforms),
+    ]);
+    return {
+      handler,
+      transforms,
+    };
+  }
+
+  function loadHandler(
+    handlerConfig: MeshConfig["mesh"]["sources"][0]["handler"]
+  ) {
+    return loadPlugin(handlerConfig);
+  }
+
+  async function loadMerger(mergerConfig: MeshConfig["mesh"]["merger"]) {
+    return mergerConfig ? loadPlugin(mergerConfig) : undefined;
+  }
+
+  async function loadTransforms(
+    transformConfigs: MeshConfig["mesh"]["transforms"]
+  ) {
+    return transformConfigs
+      ? Promise.all(
+          transformConfigs.map((transformConfig) => loadPlugin(transformConfig))
+        )
+      : undefined;
+  }
+
+  async function loadPlugin(
+    pluginConfig: PluginConfig | string
+  ): Promise<MeshPlugin> {
+    const name =
+      typeof pluginConfig === "string"
+        ? pluginConfig
+        : Object.keys(pluginConfig)[0];
+    const config =
+      typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
+    const functionPath = paths.get(name) || name;
+    const pluginFn: MeshPluginFn = await loadFromModuleExportExpression(
+      functionPath
+    );
+    return {
+      pluginFn,
+      config,
+    };
+  }
+
   return {
     sources,
     merger,
     transforms,
   };
-}
-
-async function loadSource(
-  sourceConfig: MeshConfig["sources"][0]
-): Promise<MeshSource> {
-  const [handler, transforms] = await Promise.all([
-    loadHandler(sourceConfig.handler),
-    loadTransforms(sourceConfig.transforms),
-  ]);
-  return {
-    handler,
-    transforms,
-  };
-}
-
-function loadHandler(
-  handlerConfig: MeshConfig["sources"][0]["handler"]
-): Promise<MeshHandler> {
-  return loadPlugin(handlerConfig);
-}
-
-async function loadMerger(
-  mergerConfig: MeshConfig["merger"]
-): Promise<MeshMerger | undefined> {
-  return mergerConfig ? loadPlugin(mergerConfig) : undefined;
-}
-
-async function loadTransforms(
-  transformConfigs: MeshConfig["transforms"]
-): Promise<MeshTransform[] | undefined> {
-  return transformConfigs
-    ? Promise.all(
-        transformConfigs.map((transformConfig) =>
-          loadPlugin<MeshTransform>(transformConfig)
-        )
-      )
-    : undefined;
-}
-
-async function loadPlugin<T>(pluginConfig: PluginConfig) {
-  const modulePath =
-    typeof pluginConfig === "string"
-      ? pluginConfig
-      : pluginConfig.path || pluginConfig.name || "";
-  const moduleConfig =
-    typeof pluginConfig === "string"
-      ? undefined
-      : {
-          name: pluginConfig.name,
-          config: pluginConfig.config,
-        };
-  const module: MeshPlugin<T> = await loadFromModuleExportExpression(
-    modulePath
-  );
-  return module(moduleConfig || {});
 }
