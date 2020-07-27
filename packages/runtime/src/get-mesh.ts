@@ -19,12 +19,17 @@ export async function getMesh(
         )
       : source.handler.schema
   );
-  const merger = options.merger || {
-    merge: (subschemas) => stitchSchemas({ subschemas }),
-  };
-  const unifiedSchema = await merger.merge(schemas);
+  const unifiedSchema = options.merger
+    ? await options.merger.merge(schemas)
+    : stitchSchemas({ subschemas: schemas });
+  const finalSchema = options.transforms
+    ? wrapSchema(
+        unifiedSchema,
+        options.transforms.map((meshTransform) => meshTransform.transform)
+      )
+    : unifiedSchema;
   return {
-    schema: unifiedSchema,
+    schema: finalSchema,
     contextBuilder: (initialContext) =>
       buildMeshContext(options.sources, initialContext),
   };
