@@ -5,26 +5,26 @@ export type Mesh = {
   contextBuilder?: MeshContextBuilder;
 };
 
-export type MeshPlugin = {
-  applyPlugin: MeshPluginFn;
+export type MeshPlugin<T> = {
+  applyPlugin: MeshPluginFn<T>;
   config?: any;
 };
 
-export type MeshPluginFn = (options: {
-  schema?: any;
-  schemas?: any;
-  config?: any;
-  info?: any;
-}) => Promise<Mesh> | Mesh;
+export type MeshPluginFn<T> = (
+  options: T & {
+    config?: any;
+    info?: any;
+  }
+) => Promise<Mesh> | Mesh;
 
 export type GetMeshOptions = {
   sources: {
     name?: string;
-    handler: MeshPlugin;
-    transforms?: MeshPlugin[];
+    handler: HandlerPlugin;
+    transforms?: TransformPlugin[];
   }[];
-  merger?: MeshPlugin;
-  transforms?: MeshPlugin[];
+  merger?: MergerPlugin;
+  transforms?: TransformPlugin[];
 };
 
 export type MeshConfig = {
@@ -48,3 +48,7 @@ export type MeshContext = Record<string, any>;
 export type MeshContextBuilder = (
   initialContext?: any
 ) => Promise<MeshContext> | MeshContext;
+
+export type HandlerPlugin = MeshPlugin<{}>;
+export type TransformPlugin = MeshPlugin<{ schema: GraphQLSchema }>;
+export type MergerPlugin = MeshPlugin<{ schemas: GraphQLSchema[] }>;

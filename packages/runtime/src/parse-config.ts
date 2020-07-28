@@ -95,7 +95,7 @@ export async function processConfig(
 
   async function loadPlugin(
     pluginConfig: PluginConfig | string
-  ): Promise<MeshPlugin> {
+  ): Promise<MeshPlugin<any>> {
     const name =
       typeof pluginConfig === "string"
         ? pluginConfig
@@ -103,7 +103,7 @@ export async function processConfig(
     const config =
       typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
     const functionPath = pluginPaths.get(name) || name;
-    const applyPlugin: MeshPluginFn = await loadFromModuleExportExpression(
+    const applyPlugin: MeshPluginFn<any> = await loadFromModuleExportExpression(
       functionPath
     );
     return {

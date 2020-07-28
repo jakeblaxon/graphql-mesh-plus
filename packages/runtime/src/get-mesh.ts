@@ -1,5 +1,11 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { GetMeshOptions, MeshPlugin, MeshContextBuilder, Mesh } from "./types";
+import {
+  GetMeshOptions,
+  MeshContextBuilder,
+  Mesh,
+  MergerPlugin,
+  TransformPlugin,
+} from "./types";
 
 export async function getMesh(options: GetMeshOptions): Promise<Mesh> {
   const meshSources = await Promise.all(
@@ -9,19 +15,19 @@ export async function getMesh(options: GetMeshOptions): Promise<Mesh> {
   return applyTransforms(mergedMesh, options.transforms);
 }
 
-async function getSourceMesh(source: GetMeshOptions["sources"][0]) {
+export async function getSourceMesh(source: GetMeshOptions["sources"][0]) {
   const mesh = await source.handler.applyPlugin({
     config: source.handler.config,
   });
   return applyTransforms(mesh, source.transforms, { sourceName: source.name });
 }
 
-async function getMergedMesh(
+export async function getMergedMesh(
   meshes: Mesh[],
   merger?: GetMeshOptions["merger"],
   info?: any
 ) {
-  const defaultMerger: MeshPlugin = {
+  const defaultMerger: MergerPlugin = {
     applyPlugin: (options: any) => ({
       schema: stitchSchemas({
         subschemas: options.params.schemas,
@@ -37,9 +43,9 @@ async function getMergedMesh(
   return combineMeshes(mergedMesh, meshes);
 }
 
-async function applyTransforms(
+export async function applyTransforms(
   mesh: Mesh,
-  transforms?: MeshPlugin[],
+  transforms?: TransformPlugin[],
   info?: any
 ) {
   return (transforms || []).reduce(async (currentMeshPromise, transform) => {
@@ -53,7 +59,7 @@ async function applyTransforms(
   }, Promise.resolve(mesh));
 }
 
-function combineMeshes(newMesh: Mesh, oldMeshes: Mesh[]) {
+export function combineMeshes(newMesh: Mesh, oldMeshes: Mesh[]) {
   return {
     ...newMesh,
     contextBuilder: combineContextBuilders(
@@ -63,15 +69,18 @@ function combineMeshes(newMesh: Mesh, oldMeshes: Mesh[]) {
   };
 }
 
-function combineContextBuilders(
+export function combineContextBuilders(
   ...contextBuilders: (MeshContextBuilder | undefined)[]
 ): MeshContextBuilder | undefined {
-  return contextBuilders.reduce((accum, contextBuilder) => {
-    return contextBuilder
-      ? async (initalContext?: any) => ({
-          ...(await accum?.(initalContext)),
-          ...(await contextBuilder(initalContext)),
-        })
-      : accum;
-  }, i => i);
+  return contextBuilders.reduce(
+    (accum, contextBuilder) => {
+      return contextBuilder
+        ? async (initalContext?: any) => ({
+            ...(await accum?.(initalContext)),
+            ...(await contextBuilder(initalContext)),
+          })
+        : accum;
+    },
+    (i) => i
+  );
 }
