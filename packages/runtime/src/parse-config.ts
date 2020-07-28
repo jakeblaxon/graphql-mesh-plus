@@ -48,8 +48,9 @@ function envVarLoader(ext: ".json" | ".yaml" | ".js") {
 export async function processConfig(
   config: MeshConfig
 ): Promise<GetMeshOptions> {
-  const paths = (config.paths || []).reduce(
-    (accum, path) => accum.set(Object.keys(path)[0], Object.values(path)[0]),
+  const pluginPaths = (config.plugins || []).reduce(
+    (accum, plugin) =>
+      accum.set(Object.keys(plugin)[0], Object.values(plugin)[0]),
     new Map()
   );
   const [sources, merger, transforms] = await Promise.all([
@@ -66,6 +67,7 @@ export async function processConfig(
       loadTransforms(sourceConfig.transforms),
     ]);
     return {
+      name: sourceConfig.name,
       handler,
       transforms,
     };
@@ -100,12 +102,12 @@ export async function processConfig(
         : Object.keys(pluginConfig)[0];
     const config =
       typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
-    const functionPath = paths.get(name) || name;
-    const pluginFn: MeshPluginFn = await loadFromModuleExportExpression(
+    const functionPath = pluginPaths.get(name) || name;
+    const applyPlugin: MeshPluginFn = await loadFromModuleExportExpression(
       functionPath
     );
     return {
-      pluginFn,
+      applyPlugin,
       config,
     };
   }
