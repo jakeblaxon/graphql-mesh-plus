@@ -15,7 +15,7 @@ export async function findAndParseConfig(options?: {
     },
   });
   const results = await explorer.search(dir);
-  return results?.config;
+  return { config: results?.config };
 }
 
 function envVarLoader(ext: ".json" | ".yaml" | ".js") {
