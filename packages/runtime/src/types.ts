@@ -1,30 +1,21 @@
 import { GraphQLSchema } from "graphql";
+import { PluginLoader } from "./plugin-loader";
 
-export type Mesh = {
-  schema: GraphQLSchema;
-  contextBuilder?: MeshContextBuilder;
-};
-
-export type MeshPlugin<T> = {
-  applyPlugin: MeshPluginFn<T>;
-  config?: any;
-};
-
-export type MeshPluginFn<T> = (
+export type MeshPlugin<T> = (
   options: T & {
     config?: any;
     info?: any;
   }
 ) => Promise<Mesh> | Mesh;
 
+export type Mesh = {
+  schema: GraphQLSchema;
+  contextBuilder?: MeshContextBuilder;
+};
+
 export type GetMeshOptions = {
-  sources: {
-    name?: string;
-    handler: HandlerPlugin;
-    transforms?: TransformPlugin[];
-  }[];
-  merger?: MergerPlugin;
-  transforms?: TransformPlugin[];
+  config: MeshConfig;
+  pluginLoader?: PluginLoader;
 };
 
 export type MeshConfig = {

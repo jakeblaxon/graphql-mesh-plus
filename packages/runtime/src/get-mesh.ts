@@ -1,43 +1,75 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
+import { PluginLoader } from "./plugin-loader";
+import { combineMeshes } from "./mesh-util";
 import {
   GetMeshOptions,
-  MeshContextBuilder,
   Mesh,
   MergerPlugin,
-  TransformPlugin,
+  MeshConfig,
+  PluginConfig,
 } from "./types";
 
 export async function getMesh(options: GetMeshOptions): Promise<Mesh> {
+  const pluginMap = new Map<string, string>();
+  (options.config.plugins || []).forEach((pluginConfig) => {
+    const pluginName = Object.keys(pluginConfig)[0];
+    const pluginPath = Object.values(pluginConfig)[0];
+    pluginMap.set(pluginName, pluginPath);
+  });
+  const pluginLoader = options.pluginLoader || new PluginLoader(pluginMap);
+
   const meshSources = await Promise.all(
-    options.sources.map((source) => getSourceMesh(source))
+    options.config.mesh.sources.map(
+      async (sourceConfig) => await getSourceMesh(sourceConfig, pluginLoader)
+    )
   );
-  const mergedMesh = await getMergedMesh(meshSources, options.merger);
-  return applyTransforms(mergedMesh, options.transforms);
+  const mergedMesh = await getMergedMesh(
+    meshSources,
+    pluginLoader,
+    options.config.mesh.merger
+  );
+  return applyTransforms(
+    mergedMesh,
+    pluginLoader,
+    options.config.mesh.transforms
+  );
 }
 
-export async function getSourceMesh(source: GetMeshOptions["sources"][0]) {
-  const mesh = await source.handler.applyPlugin({
-    config: source.handler.config,
+export async function getSourceMesh(
+  sourceConfig: GetMeshOptions["config"]["mesh"]["sources"][0],
+  pluginLoader: PluginLoader
+) {
+  const [handler, handlerConfig] = await loadPlugin(
+    sourceConfig.handler,
+    pluginLoader
+  );
+  const handlerMesh = await handler({
+    config: handlerConfig,
+    loader: pluginLoader,
   });
-  return applyTransforms(mesh, source.transforms, { sourceName: source.name });
+  return applyTransforms(handlerMesh, pluginLoader, sourceConfig.transforms, {
+    sourceName: sourceConfig.name,
+  });
 }
 
 export async function getMergedMesh(
   meshes: Mesh[],
-  merger?: GetMeshOptions["merger"],
+  pluginLoader: PluginLoader,
+  mergerConfig?: MeshConfig["mesh"]["merger"],
   info?: any
 ) {
-  const defaultMerger: MergerPlugin = {
-    applyPlugin: (options: any) => ({
-      schema: stitchSchemas({
-        subschemas: options.params.schemas,
-      }),
+  const defaultMerger: MergerPlugin = (options: any) => ({
+    schema: stitchSchemas({
+      subschemas: options.params.schemas,
     }),
-  };
-  merger = merger || defaultMerger;
-  const mergedMesh = await merger.applyPlugin({
+  });
+  const [merger, config] = mergerConfig
+    ? await loadPlugin(mergerConfig, pluginLoader)
+    : [defaultMerger, null];
+  const mergedMesh = await merger({
     schemas: meshes.map((mesh) => mesh.schema),
-    config: merger.config,
+    config,
+    loader: pluginLoader,
     info: { ...info, meshes },
   });
   return combineMeshes(mergedMesh, meshes);
@@ -45,42 +77,39 @@ export async function getMergedMesh(
 
 export async function applyTransforms(
   mesh: Mesh,
-  transforms?: TransformPlugin[],
+  pluginLoader: PluginLoader,
+  transforms?: MeshConfig["mesh"]["transforms"],
   info?: any
 ) {
-  return (transforms || []).reduce(async (currentMeshPromise, transform) => {
-    const currentMesh = await currentMeshPromise;
-    const newMesh = await transform.applyPlugin({
-      schema: currentMesh.schema,
-      config: transform.config,
-      info,
-    });
-    return combineMeshes(newMesh, [currentMesh]);
-  }, Promise.resolve(mesh));
-}
-
-export function combineMeshes(newMesh: Mesh, oldMeshes: Mesh[]) {
-  return {
-    ...newMesh,
-    contextBuilder: combineContextBuilders(
-      newMesh.contextBuilder,
-      ...oldMeshes.map((mesh) => mesh.contextBuilder)
-    ),
-  };
-}
-
-export function combineContextBuilders(
-  ...contextBuilders: (MeshContextBuilder | undefined)[]
-): MeshContextBuilder | undefined {
-  return contextBuilders.reduce(
-    (accum, contextBuilder) => {
-      return contextBuilder
-        ? async (initalContext?: any) => ({
-            ...(await accum?.(initalContext)),
-            ...(await contextBuilder(initalContext)),
-          })
-        : accum;
+  return (transforms || []).reduce<Promise<Mesh>>(
+    async (currentMeshPromise, transformConfig) => {
+      const currentMesh = await currentMeshPromise;
+      const [transform, config] = await loadPlugin(
+        transformConfig,
+        pluginLoader
+      );
+      const newMesh = await transform({
+        schema: currentMesh.schema,
+        config,
+        loader: pluginLoader,
+        info,
+      });
+      return combineMeshes(newMesh, [currentMesh]);
     },
-    (i) => i
+    Promise.resolve(mesh)
   );
+}
+
+export async function loadPlugin(
+  pluginConfig: string | PluginConfig,
+  pluginLoader: PluginLoader
+) {
+  const pluginName =
+    typeof pluginConfig === "string"
+      ? pluginConfig
+      : Object.keys(pluginConfig)[0];
+  const config =
+    typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
+  const plugin = await pluginLoader.loadPlugin(pluginName);
+  return [plugin, config];
 }
