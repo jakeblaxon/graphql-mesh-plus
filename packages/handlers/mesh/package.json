@@ -1,6 +1,6 @@
 {
-  "name": "@jakeblaxon-graphql-mesh/runtime",
-  "version": "0.2.31",
+  "name": "@jakeblaxon-graphql-mesh/handler-mesh",
+  "version": "0.2.20",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -11,9 +11,7 @@
     "graphql": "*"
   },
   "dependencies": {
-    "@graphql-mesh/utils": "^0.2.14",
-    "@graphql-tools/stitch": "^6.0.15",
-    "cosmiconfig": "^6.0.0"
+    "@jakeblaxon-graphql-mesh/runtime": "^0.2.31"
   },
   "devDependencies": {
     "typescript": "^3.9.7"
