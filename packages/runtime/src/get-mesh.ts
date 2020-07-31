@@ -60,9 +60,9 @@ async function getMergedMesh(
   mergerConfig?: MeshConfig["mesh"]["merger"],
   info?: any
 ) {
-  const defaultMerger: MergerPlugin = (options: any) => ({
+  const defaultMerger: MergerPlugin = (options) => ({
     schema: stitchSchemas({
-      subschemas: options.params.schemas,
+      subschemas: options.schemas,
     }),
   });
   const [merger, config] = mergerConfig
