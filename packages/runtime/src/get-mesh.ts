@@ -7,6 +7,8 @@ import {
   MergerPlugin,
   MeshConfig,
   PluginConfig,
+  TransformPlugin,
+  HandlerPlugin,
 } from "./types";
 
 export async function getMesh(options: GetMeshOptions): Promise<Mesh> {
@@ -43,7 +45,7 @@ async function getSourceMesh(
     sourceConfig.handler,
     pluginLoader
   );
-  const handlerMesh = await handler({
+  const handlerMesh = await (handler as HandlerPlugin)({
     config: handlerConfig,
     loader: pluginLoader,
   });
@@ -66,7 +68,7 @@ async function getMergedMesh(
   const [merger, config] = mergerConfig
     ? await loadPlugin(mergerConfig, pluginLoader)
     : [defaultMerger, null];
-  const mergedMesh = await merger({
+  const mergedMesh = await (merger as MergerPlugin)({
     schemas: meshes.map((mesh) => mesh.schema),
     config,
     loader: pluginLoader,
@@ -88,7 +90,7 @@ async function applyTransforms(
         transformConfig,
         pluginLoader
       );
-      const newMesh = await transform({
+      const newMesh = await (transform as TransformPlugin)({
         schema: currentMesh.schema,
         config,
         loader: pluginLoader,

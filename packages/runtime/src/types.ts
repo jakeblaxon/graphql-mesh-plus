@@ -4,6 +4,7 @@ import { PluginLoader } from "./plugin-loader";
 export type MeshPlugin<T> = (
   options: T & {
     config?: any;
+    loader: PluginLoader;
     info?: any;
   }
 ) => Promise<Mesh> | Mesh;
