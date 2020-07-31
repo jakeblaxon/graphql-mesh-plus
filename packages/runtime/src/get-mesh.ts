@@ -35,7 +35,7 @@ export async function getMesh(options: GetMeshOptions): Promise<Mesh> {
   );
 }
 
-export async function getSourceMesh(
+async function getSourceMesh(
   sourceConfig: GetMeshOptions["config"]["mesh"]["sources"][0],
   pluginLoader: PluginLoader
 ) {
@@ -52,7 +52,7 @@ export async function getSourceMesh(
   });
 }
 
-export async function getMergedMesh(
+async function getMergedMesh(
   meshes: Mesh[],
   pluginLoader: PluginLoader,
   mergerConfig?: MeshConfig["mesh"]["merger"],
@@ -75,7 +75,7 @@ export async function getMergedMesh(
   return combineMeshes(mergedMesh, meshes);
 }
 
-export async function applyTransforms(
+async function applyTransforms(
   mesh: Mesh,
   pluginLoader: PluginLoader,
   transforms?: MeshConfig["mesh"]["transforms"],
@@ -100,7 +100,7 @@ export async function applyTransforms(
   );
 }
 
-export async function loadPlugin(
+async function loadPlugin(
   pluginConfig: string | PluginConfig,
   pluginLoader: PluginLoader
 ) {
