@@ -1,7 +1,6 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
 import { PluginLoader } from "./plugin-loader";
 import {
-  GetMeshOptions,
   Mesh,
   MergerPlugin,
   PluginConfig,
@@ -10,29 +9,33 @@ import {
   PluginKind,
   MeshOrSchema,
   MeshContextBuilder,
+  MeshConfig,
 } from "../types";
 import { isSchema } from "graphql";
 
-export function getMesh(options: GetMeshOptions): Promise<Mesh> {
-  const meshLoader = new MeshLoader(options);
+export function getMesh(
+  config: MeshConfig,
+  pluginLoader?: PluginLoader
+): Promise<Mesh> {
+  const meshLoader = new MeshLoader(config, pluginLoader);
   return meshLoader.loadMesh();
 }
 class MeshLoader {
   private pluginLoader: PluginLoader;
 
-  constructor(private options: GetMeshOptions) {
+  constructor(private config: MeshConfig, pluginLoader?: PluginLoader) {
     const pluginMap = new Map<string, string>();
-    (options.config.plugins || []).forEach((pluginConfig) => {
+    (config.plugins || []).forEach((pluginConfig) => {
       const pluginName = Object.keys(pluginConfig)[0];
       const pluginPath = Object.values(pluginConfig)[0];
       pluginMap.set(pluginName, pluginPath);
     });
-    this.pluginLoader = options.pluginLoader || new PluginLoader(pluginMap);
+    this.pluginLoader = pluginLoader || new PluginLoader(pluginMap);
   }
 
   async loadMesh() {
     const meshSources = await Promise.all(
-      this.options.config.mesh.sources.map(
+      this.config.mesh.sources.map(
         async (sourceConfig) => await this.getSourceMesh(sourceConfig)
       )
     );
@@ -40,9 +43,7 @@ class MeshLoader {
     return this.applyTransforms(mergedMesh);
   }
 
-  async getSourceMesh(
-    sourceConfig: GetMeshOptions["config"]["mesh"]["sources"][0]
-  ) {
+  async getSourceMesh(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
     const [handler, handlerConfig] = await this.loadPlugin(
       sourceConfig.handler
     );
@@ -63,7 +64,7 @@ class MeshLoader {
         subschemas: options.schemas,
       }),
     });
-    const mergerConfig = this.options.config.mesh.merger;
+    const mergerConfig = this.config.mesh.merger;
     const [merger, config] = mergerConfig
       ? await this.loadPlugin(mergerConfig)
       : [defaultMerger, null];
@@ -81,7 +82,7 @@ class MeshLoader {
   }
 
   async applyTransforms(mesh: Mesh) {
-    const transforms = this.options.config.mesh.transforms;
+    const transforms = this.config.mesh.transforms;
     return (transforms || []).reduce<Promise<Mesh>>(
       async (currentMeshPromise, transformConfig) => {
         const currentMesh = await currentMeshPromise;

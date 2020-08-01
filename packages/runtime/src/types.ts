@@ -38,11 +38,6 @@ export type Mesh = {
 
 export type MeshOrSchema = Mesh | GraphQLSchema;
 
-export type GetMeshOptions = {
-  config: MeshConfig;
-  pluginLoader?: PluginLoader;
-};
-
 export type MeshConfig = {
   plugins?: Record<string, string>[];
   mesh: {
