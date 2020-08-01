@@ -13,7 +13,7 @@ import {
 } from "../types";
 import { isSchema } from "graphql";
 
-export function getMesh(
+export function loadMesh(
   config: MeshConfig,
   pluginLoader?: PluginLoader
 ): Promise<Mesh> {
@@ -49,6 +49,7 @@ class MeshLoader {
     );
     const handlerMesh = await (handler as HandlerPlugin)({
       kind: PluginKind.Handler,
+      name: sourceConfig.name,
       config: handlerConfig,
       loader: this.pluginLoader,
       contextNamespace: Symbol(sourceConfig.name),
@@ -71,7 +72,7 @@ class MeshLoader {
     const mergedMesh = await (merger as MergerPlugin)({
       kind: PluginKind.Merger,
       schemas: meshes.map((mesh) => mesh.schema),
-      meshes,
+      sources: meshes.map((mesh) => ({ name: mesh.name, schema: mesh.schema })),
       config,
       loader: this.pluginLoader,
       contextNamespace: Symbol(
@@ -89,6 +90,7 @@ class MeshLoader {
         const [transform, config] = await this.loadPlugin(transformConfig);
         const newMesh = await (transform as TransformPlugin)({
           kind: PluginKind.Transform,
+          name: currentMesh.name,
           schema: currentMesh.schema,
           config,
           loader: this.pluginLoader,

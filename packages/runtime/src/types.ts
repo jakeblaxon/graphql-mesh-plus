@@ -12,6 +12,7 @@ export type MeshPlugin<T> = (
 
 export type HandlerPlugin = MeshPlugin<{
   kind: PluginKind.Handler;
+  name?: string;
 }>;
 export type TransformPlugin = MeshPlugin<{
   kind: PluginKind.Transform;
@@ -21,7 +22,7 @@ export type TransformPlugin = MeshPlugin<{
 export type MergerPlugin = MeshPlugin<{
   kind: PluginKind.Merger;
   schemas: GraphQLSchema[];
-  meshes: Mesh[];
+  sources: { name?: string; schema: GraphQLSchema }[];
 }>;
 
 export enum PluginKind {

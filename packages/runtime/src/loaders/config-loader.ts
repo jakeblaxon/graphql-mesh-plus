@@ -1,11 +1,7 @@
 import { cosmiconfig, defaultLoaders } from "cosmiconfig";
 
-export async function findAndParseConfig(options?: {
-  configName?: string;
-  dir?: string;
-}) {
-  const { configName = "mesh", dir = process.cwd() } = options || {};
-  const explorer = cosmiconfig(configName, {
+export async function loadConfig(configName?: string, dir?: string) {
+  const explorer = cosmiconfig(configName || "mesh", {
     loaders: {
       ".json": envVarLoader(".json"),
       ".yaml": envVarLoader(".yaml"),
