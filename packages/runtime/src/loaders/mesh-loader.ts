@@ -1,6 +1,6 @@
 import { isSchema } from "graphql";
-import { stitchSchemas } from "@graphql-tools/stitch";
 import { PluginLoader } from "./plugin-loader";
+import { defaultMerger } from "../default-plugins";
 import {
   Mesh,
   MergerPlugin,
@@ -22,11 +22,6 @@ export function loadMesh(
 }
 class MeshLoader {
   private pluginLoader: PluginLoader;
-  private defaultMerger: MergerPlugin = (options) => ({
-    schema: stitchSchemas({
-      subschemas: options.schemas,
-    }),
-  });
 
   constructor(private config: MeshConfig, pluginLoader?: PluginLoader) {
     const pluginMap = new Map<string, string>();
@@ -74,7 +69,7 @@ class MeshLoader {
     const mergerConfig = this.config.mesh.merger;
     const [merger, config] = mergerConfig
       ? await this.loadPlugin(mergerConfig)
-      : [this.defaultMerger, null];
+      : [defaultMerger, null];
     const mergedMesh = await (merger as MergerPlugin)({
       kind: PluginKind.Merger,
       schemas: sources.map((source) => source.mesh.schema),

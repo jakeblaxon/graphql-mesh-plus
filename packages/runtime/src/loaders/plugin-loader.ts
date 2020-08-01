@@ -3,9 +3,12 @@ import {
   loadFromModuleExportExpressionSync,
 } from "@graphql-mesh/utils";
 import { MeshPlugin } from "../types";
-import { meshHandler } from "../plugins/mesh-handler";
+import { meshHandler, defaultMerger } from "../default-plugins";
 
-const defaultPlugins = [{ name: "mesh", plugin: meshHandler }];
+const defaultPlugins = [
+  { name: "stitching", plugin: defaultMerger },
+  { name: "mesh", plugin: meshHandler },
+];
 
 export class PluginLoader {
   constructor(private pluginMap: Map<string, string | MeshPlugin<any>>) {
