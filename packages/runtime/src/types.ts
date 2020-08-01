@@ -33,9 +33,13 @@ export enum PluginKind {
 
 export type Mesh = {
   schema: GraphQLSchema;
-  name?: string;
   contextBuilder?: MeshContextBuilder;
 };
+
+export type MeshContext = Record<string, any>;
+export type MeshContextBuilder = (
+  initialContext?: any
+) => Promise<MeshContext> | MeshContext;
 
 export type MeshOrSchema = Mesh | GraphQLSchema;
 
@@ -52,11 +56,4 @@ export type MeshConfig = {
   };
 };
 
-export type PluginName = string;
-export type PluginCustomConfig = any;
-export type PluginConfig = Record<PluginName, PluginCustomConfig>;
-
-export type MeshContext = Record<string, any>;
-export type MeshContextBuilder = (
-  initialContext?: any
-) => Promise<MeshContext> | MeshContext;
+export type PluginConfig = Record<string, any>;

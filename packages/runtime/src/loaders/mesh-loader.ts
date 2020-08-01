@@ -1,3 +1,4 @@
+import { isSchema } from "graphql";
 import { stitchSchemas } from "@graphql-tools/stitch";
 import { PluginLoader } from "./plugin-loader";
 import {
@@ -11,7 +12,6 @@ import {
   MeshContextBuilder,
   MeshConfig,
 } from "../types";
-import { isSchema } from "graphql";
 
 export function loadMesh(
   config: MeshConfig,
@@ -22,6 +22,11 @@ export function loadMesh(
 }
 class MeshLoader {
   private pluginLoader: PluginLoader;
+  private defaultMerger: MergerPlugin = (options) => ({
+    schema: stitchSchemas({
+      subschemas: options.schemas,
+    }),
+  });
 
   constructor(private config: MeshConfig, pluginLoader?: PluginLoader) {
     const pluginMap = new Map<string, string>();
@@ -34,16 +39,16 @@ class MeshLoader {
   }
 
   async loadMesh() {
-    const meshSources = await Promise.all(
+    const sources = await Promise.all(
       this.config.mesh.sources.map(
-        async (sourceConfig) => await this.getSourceMesh(sourceConfig)
+        async (sourceConfig) => await this.getSource(sourceConfig)
       )
     );
-    const mergedMesh = await this.getMergedMesh(meshSources);
+    const mergedMesh = await this.getMergedMesh(sources);
     return this.applyTransforms(mergedMesh);
   }
 
-  async getSourceMesh(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
+  async getSource(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
     const [handler, handlerConfig] = await this.loadPlugin(
       sourceConfig.handler
     );
@@ -54,35 +59,41 @@ class MeshLoader {
       loader: this.pluginLoader,
       contextNamespace: Symbol(sourceConfig.name),
     });
-    return this.applyTransforms(
-      MeshUtil.convertToMesh(handlerMesh, { name: sourceConfig.name })
+    const transformedMesh = await this.applyTransforms(
+      MeshUtil.convertToMesh(handlerMesh),
+      sourceConfig.name
     );
+    return {
+      name: sourceConfig.name,
+      mesh: transformedMesh,
+    };
   }
 
-  async getMergedMesh(meshes: Mesh[]) {
-    const defaultMerger: MergerPlugin = (options) => ({
-      schema: stitchSchemas({
-        subschemas: options.schemas,
-      }),
-    });
+  async getMergedMesh(sources: { name?: string; mesh: Mesh }[]) {
     const mergerConfig = this.config.mesh.merger;
     const [merger, config] = mergerConfig
       ? await this.loadPlugin(mergerConfig)
-      : [defaultMerger, null];
+      : [this.defaultMerger, null];
     const mergedMesh = await (merger as MergerPlugin)({
       kind: PluginKind.Merger,
-      schemas: meshes.map((mesh) => mesh.schema),
-      sources: meshes.map((mesh) => ({ name: mesh.name, schema: mesh.schema })),
+      schemas: sources.map((source) => source.mesh.schema),
+      sources: sources.map((source) => ({
+        name: source.name,
+        schema: source.mesh.schema,
+      })),
       config,
       loader: this.pluginLoader,
       contextNamespace: Symbol(
-        "merge-" + meshes.map((mesh) => mesh.name).join("-")
+        "merge-" + sources.map((source) => source.name).join("-")
       ),
     });
-    return MeshUtil.combineMeshes(MeshUtil.convertToMesh(mergedMesh), meshes);
+    return MeshUtil.combineMeshes(
+      MeshUtil.convertToMesh(mergedMesh),
+      sources.map((source) => source.mesh)
+    );
   }
 
-  async applyTransforms(mesh: Mesh) {
+  async applyTransforms(mesh: Mesh, name?: string) {
     const transforms = this.config.mesh.transforms;
     return (transforms || []).reduce<Promise<Mesh>>(
       async (currentMeshPromise, transformConfig) => {
@@ -90,11 +101,11 @@ class MeshLoader {
         const [transform, config] = await this.loadPlugin(transformConfig);
         const newMesh = await (transform as TransformPlugin)({
           kind: PluginKind.Transform,
-          name: currentMesh.name,
+          name,
           schema: currentMesh.schema,
           config,
           loader: this.pluginLoader,
-          contextNamespace: Symbol(mesh.name),
+          contextNamespace: Symbol(name),
         });
         return MeshUtil.combineMeshes(MeshUtil.convertToMesh(newMesh), [
           currentMesh,
@@ -117,13 +128,8 @@ class MeshLoader {
 }
 
 class MeshUtil {
-  static convertToMesh(
-    meshOrSchema: MeshOrSchema,
-    props?: Omit<Mesh, "schema">
-  ): Mesh {
-    return isSchema(meshOrSchema)
-      ? { schema: meshOrSchema, ...props }
-      : { ...meshOrSchema, ...props };
+  static convertToMesh(meshOrSchema: MeshOrSchema): Mesh {
+    return isSchema(meshOrSchema) ? { schema: meshOrSchema } : meshOrSchema;
   }
 
   static combineMeshes(newMesh: Mesh, oldMeshes: Mesh[]): Mesh {
