@@ -45,7 +45,7 @@ class MeshLoader {
       )
     );
     const mergedMesh = await this.getMergedMesh(sources);
-    return this.applyTransforms(mergedMesh);
+    return this.applyTransforms(mergedMesh, this.config.mesh.transforms);
   }
 
   async getSource(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
@@ -61,6 +61,7 @@ class MeshLoader {
     });
     const transformedMesh = await this.applyTransforms(
       MeshUtil.convertToMesh(handlerMesh),
+      sourceConfig.transforms,
       sourceConfig.name
     );
     return {
@@ -93,8 +94,11 @@ class MeshLoader {
     );
   }
 
-  async applyTransforms(mesh: Mesh, name?: string) {
-    const transforms = this.config.mesh.transforms;
+  async applyTransforms(
+    mesh: Mesh,
+    transforms?: MeshConfig["mesh"]["sources"][0]["transforms"],
+    name?: string
+  ) {
     return (transforms || []).reduce<Promise<Mesh>>(
       async (currentMeshPromise, transformConfig) => {
         const currentMesh = await currentMeshPromise;
