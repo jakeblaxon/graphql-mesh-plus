@@ -1,6 +1,6 @@
 {
   "name": "@jakeblaxon-graphql-mesh/cli",
-  "version": "0.2.22",
+  "version": "0.2.25",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -16,11 +16,13 @@
     "graphql": "*"
   },
   "dependencies": {
-    "@graphql-mesh/cli": "^0.2.13",
-    "@jakeblaxon-graphql-mesh/runtime": "^0.2.18",
-    "node-eval": "^2.0.0"
+    "@jakeblaxon-graphql-mesh/runtime": "^0.2.33",
+    "apollo-server": "^2.16.1",
+    "winston": "^3.3.3",
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
+    "@types/yargs": "^15.0.5",
     "typescript": "^3.9.7"
   }
 }
