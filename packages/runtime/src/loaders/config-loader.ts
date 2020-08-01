@@ -11,7 +11,7 @@ export async function loadConfig(configName?: string, dir?: string) {
     },
   });
   const results = await explorer.search(dir);
-  return { config: results?.config };
+  return results?.config;
 }
 
 function envVarLoader(ext: ".json" | ".yaml" | ".js") {
