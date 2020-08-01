@@ -2,7 +2,7 @@ import {
   loadFromModuleExportExpression,
   loadFromModuleExportExpressionSync,
 } from "@graphql-mesh/utils";
-import { MeshPlugin } from "./types";
+import { MeshPlugin } from "../types";
 
 export class PluginLoader {
   constructor(private pluginMap: Map<string, string | MeshPlugin<any>>) {

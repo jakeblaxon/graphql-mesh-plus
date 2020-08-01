@@ -1,18 +1,42 @@
 import { GraphQLSchema } from "graphql";
-import { PluginLoader } from "./plugin-loader";
+import { PluginLoader } from "./loaders/plugin-loader";
 
 export type MeshPlugin<T> = (
   options: T & {
-    config?: any;
+    kind: PluginKind;
+    config: any;
     loader: PluginLoader;
-    info?: any;
+    contextNamespace: Symbol;
   }
-) => Promise<Mesh> | Mesh;
+) => Promise<MeshOrSchema> | MeshOrSchema;
+
+export type HandlerPlugin = MeshPlugin<{
+  kind: PluginKind.Handler;
+}>;
+export type TransformPlugin = MeshPlugin<{
+  kind: PluginKind.Transform;
+  name?: string;
+  schema: GraphQLSchema;
+}>;
+export type MergerPlugin = MeshPlugin<{
+  kind: PluginKind.Merger;
+  schemas: GraphQLSchema[];
+  meshes: Mesh[];
+}>;
+
+export enum PluginKind {
+  Handler,
+  Transform,
+  Merger,
+}
 
 export type Mesh = {
   schema: GraphQLSchema;
+  name?: string;
   contextBuilder?: MeshContextBuilder;
 };
+
+export type MeshOrSchema = Mesh | GraphQLSchema;
 
 export type GetMeshOptions = {
   config: MeshConfig;
@@ -40,7 +64,3 @@ export type MeshContext = Record<string, any>;
 export type MeshContextBuilder = (
   initialContext?: any
 ) => Promise<MeshContext> | MeshContext;
-
-export type HandlerPlugin = MeshPlugin<{}>;
-export type TransformPlugin = MeshPlugin<{ schema: GraphQLSchema }>;
-export type MergerPlugin = MeshPlugin<{ schemas: GraphQLSchema[] }>;

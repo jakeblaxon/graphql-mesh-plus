@@ -1,4 +1,4 @@
-export * from "./get-mesh";
-export * from "./parse-config";
-export * from "./plugin-loader";
+export * from "./loaders/mesh-loader";
+export * from "./loaders/config-loader";
+export * from "./loaders/plugin-loader";
 export * from "./types";
