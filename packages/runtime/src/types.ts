@@ -1,14 +1,14 @@
 import { GraphQLSchema } from "graphql";
-import { PluginLoader } from "./loaders/plugin-loader";
+import { MeshContextBuilder, PluginLoader } from ".";
 
 export type MeshPlugin<T> = (
   options: T & {
     kind: PluginKind;
     config: any;
     loader: PluginLoader;
-    contextNamespace: Symbol;
+    contextBuilder: MeshContextBuilder;
   }
-) => Promise<MeshOrSchema> | MeshOrSchema;
+) => GraphQLSchema | Promise<GraphQLSchema>;
 
 export type HandlerPlugin = MeshPlugin<{
   kind: PluginKind.Handler;
@@ -37,11 +37,9 @@ export type Mesh = {
 };
 
 export type MeshContext = Record<string, any>;
-export type MeshContextBuilder = (
+export type MeshContextFn = (
   initialContext?: any
-) => Promise<MeshContext> | MeshContext;
-
-export type MeshOrSchema = Mesh | GraphQLSchema;
+) => MeshContext | Promise<MeshContext>;
 
 export type MeshConfig = {
   plugins?: Record<string, string>[];
