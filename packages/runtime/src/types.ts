@@ -1,4 +1,5 @@
 import { GraphQLSchema } from "graphql";
+import { IEventEmitter } from 'tsee';
 import { MeshContextBuilder, PluginLoader } from ".";
 
 export type MeshPlugin<T> = (
@@ -7,6 +8,7 @@ export type MeshPlugin<T> = (
     config: any;
     loader: PluginLoader;
     contextBuilder: MeshContextBuilder;
+    hooks: Hooks;
   }
 ) => GraphQLSchema | Promise<GraphQLSchema>;
 
@@ -31,9 +33,16 @@ export enum PluginKind {
   Merger,
 }
 
+export type Hooks = IEventEmitter<{
+  schemaReady: (schema: GraphQLSchema) => void;
+  destroy: () => void;
+}>;
+
 export type Mesh = {
   schema: GraphQLSchema;
-  contextBuilder?: MeshContextBuilder;
+  contextBuilder: MeshContextBuilder;
+  hooks: Hooks;
+  destroy: () => void;
 };
 
 export type MeshContext = Record<string, any>;

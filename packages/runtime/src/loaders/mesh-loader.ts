@@ -1,4 +1,5 @@
 import { GraphQLSchema } from "graphql";
+import { EventEmitter } from "events";
 import { PluginLoader } from "./plugin-loader";
 import { defaultMerger } from "../default-plugins";
 import {
@@ -10,6 +11,7 @@ import {
   PluginKind,
   MeshConfig,
   MeshContextFn,
+  Hooks,
 } from "../types";
 
 export function loadMesh(
@@ -17,6 +19,7 @@ export function loadMesh(
   options?: {
     pluginLoader?: PluginLoader;
     contextBuilder?: MeshContextBuilder;
+    hooks?: Hooks;
   }
 ): Promise<Mesh> {
   return new MeshLoader(config, options).loadMesh();
@@ -24,12 +27,14 @@ export function loadMesh(
 class MeshLoader {
   private pluginLoader: PluginLoader;
   private contextBuilder: MeshContextBuilder;
+  private hooks: Hooks;
 
   constructor(
     private config: MeshConfig,
     options?: {
       pluginLoader?: PluginLoader;
       contextBuilder?: MeshContextBuilder;
+      hooks?: Hooks;
     }
   ) {
     const pluginMap = new Map<string, string>();
@@ -40,9 +45,14 @@ class MeshLoader {
     });
     this.pluginLoader = options?.pluginLoader || new PluginLoader(pluginMap);
     this.contextBuilder = options?.contextBuilder || new MeshContextBuilder();
+    this.hooks = options?.hooks!;
+    if (!this.hooks) {
+      this.hooks = new EventEmitter() as Hooks;
+      this.hooks.setMaxListeners(Infinity);
+    }
   }
 
-  async loadMesh() {
+  async loadMesh(): Promise<Mesh> {
     const sources = await Promise.all(
       this.config.mesh.sources.map(
         async (sourceConfig) => await this.getSource(sourceConfig)
@@ -53,9 +63,12 @@ class MeshLoader {
       mergedSchema,
       this.config.mesh.transforms
     );
+    this.hooks.emit("schemaReady", transformedSchema);
     return {
       schema: transformedSchema,
       contextBuilder: this.contextBuilder,
+      hooks: this.hooks,
+      destroy: () => this.hooks.emit("destroy"),
     };
   }
 
@@ -69,6 +82,7 @@ class MeshLoader {
       config: handlerConfig,
       loader: this.pluginLoader,
       contextBuilder: this.contextBuilder,
+      hooks: this.hooks,
     });
     const transformedSchema = await this.applyTransforms(
       handlerSchema,
@@ -96,6 +110,7 @@ class MeshLoader {
       config,
       loader: this.pluginLoader,
       contextBuilder: this.contextBuilder,
+      hooks: this.hooks,
     });
     return mergedSchema;
   }
@@ -116,6 +131,7 @@ class MeshLoader {
           config,
           loader: this.pluginLoader,
           contextBuilder: this.contextBuilder,
+          hooks: this.hooks,
         });
         return newSchema;
       },
