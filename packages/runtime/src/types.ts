@@ -24,9 +24,9 @@ export type MergerPlugin = MeshPlugin<{
 }>;
 
 export enum PluginAction {
-  "Handle",
-  "Transform",
-  "Merge",
+  Handle = "Handle",
+  Transform = "Transform",
+  Merge = "Merge",
 }
 
 export type PluginConfig = string | Record<string, any>;

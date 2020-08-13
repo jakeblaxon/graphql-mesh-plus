@@ -49,9 +49,8 @@ async function loadMerger(config: MergerSourceConfig, pluginLoader: PluginLoader
       schema: await loadSource(sourceConfig, pluginLoader),
     }))
   );
-  const mergerConfig = config.merger;
-  const [merger, mergerConfigOptions] = mergerConfig
-    ? await loadPluginFromConfig(mergerConfig, pluginLoader)
+  const [merger, mergerConfig] = config.merger
+    ? await loadPluginFromConfig(config.merger, pluginLoader)
     : [defaultMerger, null];
   return (merger as MergerPlugin)({
     action: PluginAction.Merge,
@@ -59,24 +58,27 @@ async function loadMerger(config: MergerSourceConfig, pluginLoader: PluginLoader
       name: source.name,
       schema: source.schema,
     })),
-    config: mergerConfigOptions,
+    config: mergerConfig,
     loader: pluginLoader,
   });
 }
 
 async function applyTransforms(startingSchema: GraphQLSchema, config: SourceConfig, pluginLoader: PluginLoader) {
-  return (config.transforms || []).reduce<Promise<GraphQLSchema>>(async (currentSchemaPromise, transformConfig) => {
-    const currentSchema = await currentSchemaPromise;
-    const [transform, config] = await loadPluginFromConfig(transformConfig, pluginLoader);
-    const newSchema = await (transform as TransformPlugin)({
-      action: PluginAction.Transform,
-      sourceName: config.name,
-      schema: currentSchema,
-      loader: pluginLoader,
-      config,
-    });
-    return newSchema;
-  }, Promise.resolve(startingSchema));
+  return (config.transforms || []).reduce<Promise<GraphQLSchema>>(
+    async (currentSchemaPromise, currentTransformConfig) => {
+      const currentSchema = await currentSchemaPromise;
+      const [transform, transformConfig] = await loadPluginFromConfig(currentTransformConfig, pluginLoader);
+      const newSchema = await (transform as TransformPlugin)({
+        action: PluginAction.Transform,
+        sourceName: config.name,
+        schema: currentSchema,
+        loader: pluginLoader,
+        config: transformConfig,
+      });
+      return newSchema;
+    },
+    Promise.resolve(startingSchema)
+  );
 }
 
 async function loadPluginFromConfig(pluginConfig: PluginConfig, pluginLoader: PluginLoader) {
