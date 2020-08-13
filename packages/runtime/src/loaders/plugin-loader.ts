@@ -1,7 +1,4 @@
-import {
-  loadFromModuleExportExpression,
-  loadFromModuleExportExpressionSync,
-} from "@graphql-mesh/utils";
+import { loadFromModuleExportExpression, loadFromModuleExportExpressionSync } from "@graphql-mesh/utils";
 import { MeshPlugin } from "../types";
 import { defaultPlugins } from "../plugins/default-plugins";
 
@@ -9,10 +6,7 @@ export class PluginLoader {
   constructor(private pluginMap: Map<string, string | MeshPlugin<any>>) {
     this.pluginMap = pluginMap || new Map();
     defaultPlugins.forEach((pluginEntry) =>
-      this.pluginMap.set(
-        pluginEntry.name,
-        pluginMap.get(pluginEntry.name) || pluginEntry.plugin
-      )
+      this.pluginMap.set(pluginEntry.name, pluginMap.get(pluginEntry.name) || pluginEntry.plugin)
     );
   }
 

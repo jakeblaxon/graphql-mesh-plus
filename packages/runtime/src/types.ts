@@ -29,17 +29,24 @@ export enum PluginAction {
   "Merge",
 }
 
-export type MeshConfig = {
-  plugins?: Record<string, string>[];
-  mesh: {
-    sources: {
-      name: string;
-      handler: PluginConfig;
-      transforms?: PluginConfig[];
-    }[];
-    merger?: PluginConfig;
-    transforms?: PluginConfig[];
-  };
+export type PluginConfig = string | Record<string, any>;
+
+export type HandlerSourceConfig = {
+  name: string;
+  handler: PluginConfig;
+  transforms?: PluginConfig[];
 };
 
-export type PluginConfig = string | Record<string, any>;
+export type MergerSourceConfig = {
+  name: string;
+  sources: SourceConfig[];
+  merger?: PluginConfig;
+  transforms?: PluginConfig[];
+};
+
+export type SourceConfig = HandlerSourceConfig | MergerSourceConfig;
+
+export type MeshConfig = {
+  mesh: SourceConfig;
+  plugins?: Record<string, string>[];
+};
