@@ -1,0 +1,8 @@
+plugins:
+  - openapi: "plugins#openApi"
+
+mesh:
+  name: Mesh
+  handler:
+    openapi:
+      source: https://api.apis.guru/v2/specs/wikimedia.org/1.0.0/swagger.yaml
