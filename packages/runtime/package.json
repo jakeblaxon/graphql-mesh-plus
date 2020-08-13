@@ -1,6 +1,6 @@
 {
-  "name": "@jakeblaxon-graphql-mesh/runtime",
-  "version": "0.2.37",
+  "name": "graphql-mesh-plus",
+  "version": "0.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
