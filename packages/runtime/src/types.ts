@@ -1,7 +1,7 @@
 import { GraphQLSchema } from "graphql";
 import { PluginLoader } from "./loaders/plugin-loader";
 
-export type MeshPlugin<T> = (
+export type MeshPlugin<T = {}> = (
   options: {
     action: PluginAction;
     loader: PluginLoader;
@@ -11,7 +11,7 @@ export type MeshPlugin<T> = (
 
 export type HandlerPlugin = MeshPlugin<{
   action: PluginAction.Handle;
-  sourceName?: string;
+  sourceName: string;
 }>;
 export type TransformPlugin = MeshPlugin<{
   action: PluginAction.Transform;
