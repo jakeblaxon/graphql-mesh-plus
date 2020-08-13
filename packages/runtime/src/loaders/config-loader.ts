@@ -1,7 +1,11 @@
 import { cosmiconfig, defaultLoaders } from "cosmiconfig";
+import { MeshConfig } from "../types";
 
-export async function loadConfig(configName?: string, dir?: string) {
-  const explorer = cosmiconfig(configName || "mesh", {
+export async function loadConfig(options?: {
+  configName?: string;
+  dir?: string;
+}) {
+  const explorer = cosmiconfig(options?.configName || "mesh", {
     loaders: {
       ".json": envVarLoader(".json"),
       ".yaml": envVarLoader(".yaml"),
@@ -10,8 +14,8 @@ export async function loadConfig(configName?: string, dir?: string) {
       noExt: envVarLoader(".yaml"),
     },
   });
-  const results = await explorer.search(dir);
-  return results?.config;
+  const results = await explorer.search(options?.dir);
+  return results?.config as MeshConfig;
 }
 
 function envVarLoader(ext: ".json" | ".yaml" | ".js") {

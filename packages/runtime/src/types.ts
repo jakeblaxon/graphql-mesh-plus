@@ -1,66 +1,45 @@
 import { GraphQLSchema } from "graphql";
-import { IEventEmitter } from 'tsee';
-import { MeshContextBuilder, PluginLoader } from ".";
+import { PluginLoader } from "./loaders/plugin-loader";
 
 export type MeshPlugin<T> = (
-  options: T & {
-    kind: PluginKind;
-    config: any;
+  options: {
+    action: PluginAction;
     loader: PluginLoader;
-    contextBuilder: MeshContextBuilder;
-    hooks: Hooks;
-  }
+    config: any;
+  } & T
 ) => GraphQLSchema | Promise<GraphQLSchema>;
 
 export type HandlerPlugin = MeshPlugin<{
-  kind: PluginKind.Handler;
-  name?: string;
+  action: PluginAction.Handle;
+  sourceName?: string;
 }>;
 export type TransformPlugin = MeshPlugin<{
-  kind: PluginKind.Transform;
-  name?: string;
+  action: PluginAction.Transform;
+  sourceName: string;
   schema: GraphQLSchema;
 }>;
 export type MergerPlugin = MeshPlugin<{
-  kind: PluginKind.Merger;
-  schemas: GraphQLSchema[];
-  sources: { name?: string; schema: GraphQLSchema }[];
+  action: PluginAction.Merge;
+  sources: { name: string; schema: GraphQLSchema }[];
 }>;
 
-export enum PluginKind {
-  Handler,
-  Transform,
-  Merger,
+export enum PluginAction {
+  "Handle",
+  "Transform",
+  "Merge",
 }
-
-export type Hooks = IEventEmitter<{
-  schemaReady: (schema: GraphQLSchema) => void;
-  destroy: () => void;
-}>;
-
-export type Mesh = {
-  schema: GraphQLSchema;
-  contextBuilder: MeshContextBuilder;
-  hooks: Hooks;
-  destroy: () => void;
-};
-
-export type MeshContext = Record<string, any>;
-export type MeshContextFn = (
-  initialContext?: any
-) => MeshContext | Promise<MeshContext>;
 
 export type MeshConfig = {
   plugins?: Record<string, string>[];
   mesh: {
     sources: {
-      name?: string;
-      handler: PluginConfig | string;
-      transforms?: (PluginConfig | string)[];
+      name: string;
+      handler: PluginConfig;
+      transforms?: PluginConfig[];
     }[];
-    merger?: PluginConfig | string;
-    transforms?: (PluginConfig | string)[];
+    merger?: PluginConfig;
+    transforms?: PluginConfig[];
   };
 };
 
-export type PluginConfig = Record<string, any>;
+export type PluginConfig = string | Record<string, any>;
