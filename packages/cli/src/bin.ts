@@ -1,4 +1,4 @@
-import { loadConfig, loadMesh } from "@jakeblaxon-graphql-mesh/runtime";
+import { loadMesh } from "graphql-mesh-plus";
 import * as yargs from "yargs";
 import { createLogger, format, transports } from "winston";
 import { serveMesh } from "./commands/serve";
@@ -24,9 +24,8 @@ export async function graphqlMesh() {
     },
     async ({ port }) => {
       try {
-        const meshConfig = await loadConfig();
-        const { schema, contextBuilder } = await loadMesh(meshConfig);
-        await serveMesh(logger, schema, contextBuilder, port);
+        const schema = await loadMesh();
+        await serveMesh(logger, schema, port);
       } catch (e) {
         logger.error("Unable to serve mesh: ", e);
       }
