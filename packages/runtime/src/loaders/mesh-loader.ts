@@ -9,6 +9,9 @@ import {
   HandlerPlugin,
   PluginAction,
   MeshConfig,
+  SourceConfig,
+  MergerSourceConfig,
+  HandlerSourceConfig,
 } from "../types";
 
 export async function loadMesh(options?: {
@@ -17,104 +20,82 @@ export async function loadMesh(options?: {
   dir?: string;
   pluginLoader?: PluginLoader;
 }): Promise<GraphQLSchema> {
-  const config =
-    options?.config ||
-    (await loadConfig({ configName: options?.configName, dir: options?.dir }));
-  const pluginLoader =
-    options?.pluginLoader || new PluginLoader(buildPluginMap(config.plugins));
+  const config = options?.config || (await loadConfig({ configName: options?.configName, dir: options?.dir }));
+  const pluginLoader = options?.pluginLoader || new PluginLoader(buildPluginMap(config.plugins));
+  return loadSource(config.mesh, pluginLoader);
+}
 
-  async function getMesh(): Promise<GraphQLSchema> {
-    const sources = await Promise.all(
-      config.mesh.sources.map(
-        async (sourceConfig) => await getSource(sourceConfig)
-      )
-    );
-    const mergedSchema = await getMergedSchema(sources);
-    return await applyTransforms(mergedSchema, config.mesh.transforms, "");
-  }
+export async function loadSource(config: SourceConfig, pluginLoader: PluginLoader): Promise<GraphQLSchema> {
+  const schema = isHandlerSourceConfig(config)
+    ? await loadHandler(config, pluginLoader)
+    : await loadMerger(config, pluginLoader);
+  return applyTransforms(schema, config, pluginLoader);
+}
 
-  async function getSource(sourceConfig: MeshConfig["mesh"]["sources"][0]) {
-    const [handler, handlerConfig] = await loadPluginFromConfig(
-      sourceConfig.handler
-    );
-    const handlerSchema = await (handler as HandlerPlugin)({
-      action: PluginAction.Handle,
-      sourceName: sourceConfig.name,
-      config: handlerConfig,
-      loader: pluginLoader,
-    });
-    const transformedSchema = await applyTransforms(
-      handlerSchema,
-      sourceConfig.transforms,
-      sourceConfig.name
-    );
-    return {
+async function loadHandler(config: HandlerSourceConfig, pluginLoader: PluginLoader) {
+  const [handler, handlerConfig] = await loadPluginFromConfig(config.handler, pluginLoader);
+  return (handler as HandlerPlugin)({
+    action: PluginAction.Handle,
+    sourceName: config.name,
+    config: handlerConfig,
+    loader: pluginLoader,
+  });
+}
+
+async function loadMerger(config: MergerSourceConfig, pluginLoader: PluginLoader) {
+  const sources = await Promise.all(
+    config.sources.map(async (sourceConfig) => ({
       name: sourceConfig.name,
-      schema: transformedSchema,
-    };
-  }
+      schema: await loadSource(sourceConfig, pluginLoader),
+    }))
+  );
+  const mergerConfig = config.merger;
+  const [merger, mergerConfigOptions] = mergerConfig
+    ? await loadPluginFromConfig(mergerConfig, pluginLoader)
+    : [defaultMerger, null];
+  return (merger as MergerPlugin)({
+    action: PluginAction.Merge,
+    sources: sources.map((source) => ({
+      name: source.name,
+      schema: source.schema,
+    })),
+    config: mergerConfigOptions,
+    loader: pluginLoader,
+  });
+}
 
-  async function getMergedSchema(
-    sources: { name: string; schema: GraphQLSchema }[]
-  ) {
-    const mergerConfig = config.mesh.merger;
-    const [merger, mergerCustomConfig] = mergerConfig
-      ? await loadPluginFromConfig(mergerConfig)
-      : [defaultMerger, null];
-    const mergedSchema = await (merger as MergerPlugin)({
-      action: PluginAction.Merge,
-      sources: sources.map((source) => ({
-        name: source.name,
-        schema: source.schema,
-      })),
-      config: mergerCustomConfig,
+async function applyTransforms(startingSchema: GraphQLSchema, config: SourceConfig, pluginLoader: PluginLoader) {
+  return (config.transforms || []).reduce<Promise<GraphQLSchema>>(async (currentSchemaPromise, transformConfig) => {
+    const currentSchema = await currentSchemaPromise;
+    const [transform, config] = await loadPluginFromConfig(transformConfig, pluginLoader);
+    const newSchema = await (transform as TransformPlugin)({
+      action: PluginAction.Transform,
+      sourceName: config.name,
+      schema: currentSchema,
       loader: pluginLoader,
+      config,
     });
-    return mergedSchema;
-  }
+    return newSchema;
+  }, Promise.resolve(startingSchema));
+}
 
-  async function applyTransforms(
-    schema: GraphQLSchema,
-    transforms: MeshConfig["mesh"]["sources"][0]["transforms"] | undefined,
-    sourceName: string
-  ) {
-    return (transforms || []).reduce<Promise<GraphQLSchema>>(
-      async (currentSchemaPromise, transformConfig) => {
-        const currentSchema = await currentSchemaPromise;
-        const [transform, config] = await loadPluginFromConfig(transformConfig);
-        const newSchema = await (transform as TransformPlugin)({
-          action: PluginAction.Transform,
-          sourceName,
-          schema: currentSchema,
-          config,
-          loader: pluginLoader,
-        });
-        return newSchema;
-      },
-      Promise.resolve(schema)
-    );
-  }
+async function loadPluginFromConfig(pluginConfig: PluginConfig, pluginLoader: PluginLoader) {
+  const pluginName = typeof pluginConfig === "string" ? pluginConfig : Object.keys(pluginConfig)[0];
+  const config = typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
+  const plugin = await pluginLoader.loadPlugin(pluginName);
+  return [plugin, config];
+}
 
-  async function loadPluginFromConfig(pluginConfig: PluginConfig) {
-    const pluginName =
-      typeof pluginConfig === "string"
-        ? pluginConfig
-        : Object.keys(pluginConfig)[0];
-    const config =
-      typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
-    const plugin = await pluginLoader.loadPlugin(pluginName);
-    return [plugin, config];
-  }
+function buildPluginMap(pluginsConfig: MeshConfig["plugins"]) {
+  const pluginMap = new Map<string, string>();
+  (pluginsConfig || []).forEach((pluginConfig) => {
+    const pluginName = Object.keys(pluginConfig)[0];
+    const pluginPath = Object.values(pluginConfig)[0];
+    pluginMap.set(pluginName, pluginPath);
+  });
+  return pluginMap;
+}
 
-  function buildPluginMap(pluginsConfig: MeshConfig["plugins"]) {
-    const pluginMap = new Map<string, string>();
-    (pluginsConfig || []).forEach((pluginConfig) => {
-      const pluginName = Object.keys(pluginConfig)[0];
-      const pluginPath = Object.values(pluginConfig)[0];
-      pluginMap.set(pluginName, pluginPath);
-    });
-    return pluginMap;
-  }
-
-  return getMesh();
+function isHandlerSourceConfig(config: SourceConfig): config is HandlerSourceConfig {
+  return !!(config as HandlerSourceConfig).handler;
 }

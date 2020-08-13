@@ -1,10 +1,7 @@
 import { cosmiconfig, defaultLoaders } from "cosmiconfig";
 import { MeshConfig } from "../types";
 
-export async function loadConfig(options?: {
-  configName?: string;
-  dir?: string;
-}) {
+export async function loadConfig(options?: { configName?: string; dir?: string }) {
   const explorer = cosmiconfig(options?.configName || "mesh", {
     loaders: {
       ".json": envVarLoader(".json"),
