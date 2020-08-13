@@ -1,6 +1,6 @@
 {
   "name": "@graphql-mesh-plus/federation",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -11,14 +11,14 @@
     "graphql": "*"
   },
   "dependencies": {
-    "@apollo/federation": "^0.19.1",
-    "@graphql-mesh/merger-federation": "^0.2.17",
-    "@graphql-mesh/transform-federation": "^0.2.17",
-    "@graphql-mesh/utils": "^0.2.15",
-    "@graphql-tools/code-file-loader": "^6.0.18",
-    "@graphql-tools/graphql-file-loader": "^6.0.18",
-    "@graphql-tools/load": "^6.0.18",
-    "@graphql-tools/wrap": "^6.0.18",
+    "@apollo/federation": "0.19.1",
+    "@graphql-mesh/merger-federation": "0.2.17",
+    "@graphql-mesh/transform-federation": "0.2.17",
+    "@graphql-mesh/utils": "0.2.15",
+    "@graphql-tools/code-file-loader": "6.0.18",
+    "@graphql-tools/graphql-file-loader": "6.0.18",
+    "@graphql-tools/load": "6.0.18",
+    "@graphql-tools/wrap": "6.0.18",
     "graphql-mesh-plus": "0.0.3"
   },
   "devDependencies": {
