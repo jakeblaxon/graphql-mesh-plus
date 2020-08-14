@@ -5,7 +5,7 @@ export class DefaultPluginLoader implements PluginLoader {
   constructor(private config: MeshConfig["plugins"]) {}
 
   loadPlugin(name: string) {
-    let plugin = Object.values(this.config?.find((entry) => entry.name === name) || {})[0] || name;
+    let plugin = Object.values(this.config?.find((entry) => Object.keys(entry)[0] === name) || {})[0] || name;
     return loadFromModuleExportExpression(plugin) as Promise<MeshPlugin>;
   }
 }
