@@ -1,24 +1,33 @@
 import { loadFromModuleExportExpression } from "@graphql-mesh/utils";
-import { MeshPlugin } from "../types";
-import { defaultPlugins } from "../plugins/default-plugins";
+import { MeshPlugin, PluginLoader, MeshConfig } from "../types";
 
-export class PluginLoader {
-  constructor(private pluginMap: Map<string, string | MeshPlugin<any>>) {
-    this.pluginMap = pluginMap || new Map();
-    defaultPlugins.forEach((pluginEntry) =>
-      this.pluginMap.set(pluginEntry.name, pluginMap.get(pluginEntry.name) || pluginEntry.plugin)
-    );
+export class DefaultPluginLoader implements PluginLoader {
+  constructor(private config: MeshConfig["plugins"]) {}
+
+  loadPlugin(name: string) {
+    let plugin = Object.values(this.config?.find((entry) => entry.name === name) || {})[0] || name;
+    return loadFromModuleExportExpression(plugin) as Promise<MeshPlugin>;
   }
+}
 
-  async loadPlugin(name: string): Promise<MeshPlugin<any>> {
-    let plugin = this.pluginMap.get(name) || name;
-    if (typeof plugin === "string") {
-      plugin = (await loadFromModuleExportExpression(plugin)) as MeshPlugin<any>;
-    }
-    if (!plugin) {
+export function combinePluginLoaders(...loaders: (PluginLoader | undefined)[]): PluginLoader {
+  const pluginMap = new Map<string, MeshPlugin>();
+  return {
+    async loadPlugin(name: string) {
+      const cachedValue = pluginMap.get(name);
+      if (cachedValue) {
+        return cachedValue;
+      }
+      for (const loader of loaders) {
+        if (loader) {
+          try {
+            const plugin = await loader.loadPlugin(name);
+            pluginMap.set(name, plugin);
+            return plugin;
+          } catch (e) {}
+        }
+      }
       throw new Error("Could not load mesh plugin " + name);
-    }
-    this.pluginMap.set(name, plugin);
-    return plugin;
-  }
+    },
+  };
 }
