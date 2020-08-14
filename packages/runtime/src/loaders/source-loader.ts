@@ -1,29 +1,16 @@
 import { GraphQLSchema } from "graphql";
-import { loadConfig } from "./config-loader";
-import { PluginLoader } from "./plugin-loader";
-import { defaultMerger } from "../plugins/default-plugins";
+import { stitchSchemas } from "@graphql-tools/stitch";
 import {
   MergerPlugin,
   PluginConfig,
   TransformPlugin,
   HandlerPlugin,
   PluginAction,
-  MeshConfig,
   SourceConfig,
   MergerSourceConfig,
   HandlerSourceConfig,
+  PluginLoader,
 } from "../types";
-
-export async function loadMesh(options?: {
-  config?: MeshConfig;
-  configName?: string;
-  dir?: string;
-  pluginLoader?: PluginLoader;
-}): Promise<GraphQLSchema> {
-  const config = options?.config || (await loadConfig({ configName: options?.configName, dir: options?.dir }));
-  const pluginLoader = options?.pluginLoader || new PluginLoader(buildPluginMap(config.plugins));
-  return loadSource(config.mesh, pluginLoader);
-}
 
 export async function loadSource(config: SourceConfig, pluginLoader: PluginLoader): Promise<GraphQLSchema> {
   const schema = isHandlerSourceConfig(config)
@@ -31,6 +18,11 @@ export async function loadSource(config: SourceConfig, pluginLoader: PluginLoade
     : await loadMerger(config, pluginLoader);
   return applyTransforms(schema, config, pluginLoader);
 }
+
+const defaultMerger: MergerPlugin = (options) =>
+  stitchSchemas({
+    subschemas: options.sources.map((source) => source.schema),
+  });
 
 async function loadHandler(config: HandlerSourceConfig, pluginLoader: PluginLoader) {
   const [handler, handlerConfig] = await loadPluginFromConfig(config.handler, pluginLoader);
@@ -86,16 +78,6 @@ async function loadPluginFromConfig(pluginConfig: PluginConfig, pluginLoader: Pl
   const config = typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
   const plugin = await pluginLoader.loadPlugin(pluginName);
   return [plugin, config];
-}
-
-function buildPluginMap(pluginsConfig: MeshConfig["plugins"]) {
-  const pluginMap = new Map<string, string>();
-  (pluginsConfig || []).forEach((pluginConfig) => {
-    const pluginName = Object.keys(pluginConfig)[0];
-    const pluginPath = Object.values(pluginConfig)[0];
-    pluginMap.set(pluginName, pluginPath);
-  });
-  return pluginMap;
 }
 
 function isHandlerSourceConfig(config: SourceConfig): config is HandlerSourceConfig {
