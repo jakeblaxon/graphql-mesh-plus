@@ -4,18 +4,7 @@ export interface PluginLoader {
   loadPlugin(name: string): MeshPlugin | Promise<MeshPlugin>;
 }
 
-export enum PluginAction {
-  Handle = "Handle",
-  Transform = "Transform",
-  Merge = "Merge",
-}
-
-type Plugin<T = {}> = (
-  options: {
-    loader: PluginLoader;
-    config: any;
-  } & T
-) => GraphQLSchema | Promise<GraphQLSchema>;
+export type MeshPlugin = HandlerPlugin | TransformPlugin | MergerPlugin;
 
 export type HandlerPlugin = Plugin<{
   action: PluginAction.Handle;
@@ -31,9 +20,27 @@ export type MergerPlugin = Plugin<{
   sources: { name: string; schema: GraphQLSchema }[];
 }>;
 
-export type MeshPlugin = HandlerPlugin | TransformPlugin | MergerPlugin;
+type Plugin<T = {}> = (
+  options: {
+    loader: PluginLoader;
+    config: any;
+  } & T
+) => GraphQLSchema | Promise<GraphQLSchema>;
 
-export type PluginConfig = string | Record<string, any>;
+export enum PluginAction {
+  Handle = "Handle",
+  Transform = "Transform",
+  Merge = "Merge",
+}
+
+////////////////////////////////
+
+export type MeshConfig = {
+  mesh: SourceConfig;
+  plugins?: Record<string, string>[];
+};
+
+export type SourceConfig = HandlerSourceConfig | MergerSourceConfig;
 
 export type HandlerSourceConfig = {
   name: string;
@@ -48,9 +55,4 @@ export type MergerSourceConfig = {
   transforms?: PluginConfig[];
 };
 
-export type SourceConfig = HandlerSourceConfig | MergerSourceConfig;
-
-export type MeshConfig = {
-  mesh: SourceConfig;
-  plugins?: Record<string, string>[];
-};
+export type PluginConfig = string | Record<string, any>;
