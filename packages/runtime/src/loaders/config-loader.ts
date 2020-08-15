@@ -1,8 +1,9 @@
 import { cosmiconfig, defaultLoaders } from "cosmiconfig";
 import { MeshConfig } from "../types";
 
-export async function loadConfig(options?: { configName?: string; dir?: string }) {
-  const explorer = cosmiconfig(options?.configName || "mesh", {
+export async function loadConfig(options?: { path?: string; configName?: string; dir?: string }) {
+  const configName = options?.configName || "mesh";
+  const explorer = cosmiconfig(configName, {
     loaders: {
       ".json": envVarLoader(".json"),
       ".yaml": envVarLoader(".yaml"),
@@ -10,8 +11,25 @@ export async function loadConfig(options?: { configName?: string; dir?: string }
       ".js": envVarLoader(".js"),
       noExt: envVarLoader(".yaml"),
     },
+    searchPlaces: [
+      `.${configName}`,
+      `.${configName}.json`,
+      `.${configName}.yaml`,
+      `.${configName}.yml`,
+      `.${configName}.js`,
+      `.${configName}rc`,
+      `.${configName}rc.json`,
+      `.${configName}rc.yaml`,
+      `.${configName}rc.yml`,
+      `.${configName}rc.js`,
+      `.${configName}.config`,
+      `.${configName}.config.json`,
+      `.${configName}.config.yaml`,
+      `.${configName}.config.yml`,
+      `.${configName}.config.js`,
+    ],
   });
-  const results = await explorer.search(options?.dir);
+  const results = options?.path ? await explorer.load(options.path) : await explorer.search(options?.dir);
   return results?.config as MeshConfig;
 }
 

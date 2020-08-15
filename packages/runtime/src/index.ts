@@ -10,12 +10,11 @@ export * from "./loaders/plugin-loader";
 export * from "./types";
 
 export async function loadMesh(options?: {
+  path?: string;
   config?: MeshConfig;
-  configName?: string;
-  dir?: string;
   pluginLoader?: PluginLoader;
 }): Promise<GraphQLSchema> {
-  const config = options?.config || (await loadConfig({ configName: options?.configName, dir: options?.dir }));
+  const config = options?.config || (await loadConfig({ path: options?.path }));
   const pluginLoader = options?.pluginLoader || new DefaultPluginLoader(config.plugins);
   return loadSource(config.mesh, pluginLoader);
 }
