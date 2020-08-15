@@ -33,7 +33,7 @@ export class DefaultPluginLoader implements PluginLoader {
   }
 }
 
-async function loadFromModuleExportExpression(expression: string, defaultExportName?: string) {
+export async function loadFromModuleExportExpression(expression: string, defaultExportName?: string) {
   const [modulePath, exportName = defaultExportName] = expression.split("#");
   const mod = await tryImport(modulePath);
   if (exportName === "default" || !exportName) {
