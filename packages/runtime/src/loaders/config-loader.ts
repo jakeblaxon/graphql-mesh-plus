@@ -9,6 +9,7 @@ export async function loadConfig(options?: { path?: string; configName?: string;
       ".yaml": envVarLoader(".yaml"),
       ".yml": envVarLoader(".yaml"),
       ".js": envVarLoader(".js"),
+      ".config": envVarLoader(".yaml"),
       noExt: envVarLoader(".yaml"),
     },
     searchPlaces: [
