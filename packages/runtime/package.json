@@ -1,6 +1,6 @@
 {
   "name": "graphql-mesh-plus",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@graphql-tools/stitch": "^6.0.15",
+    "@graphql-tools/wrap": "^6.0.18",
     "cosmiconfig": "^6.0.0"
   },
   "devDependencies": {

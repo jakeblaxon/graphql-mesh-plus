@@ -1,31 +1,36 @@
 import { GraphQLSchema } from "graphql";
 
-export interface PluginLoader {
-  loadPlugin(name: string): MeshPlugin | Promise<MeshPlugin>;
-}
+export type PluginLoader = {
+  getPlugin: (name: string) => MeshPlugin | Promise<MeshPlugin>;
+};
 
 export type MeshPlugin = HandlerPlugin | TransformPlugin | MergerPlugin;
 
-export type HandlerPlugin = Plugin<{
+export type HandlerPlugin = (options: HandlerOptions) => GraphQLSchema | Promise<GraphQLSchema>;
+export type TransformPlugin = (options: TransformOptions) => GraphQLSchema | Promise<GraphQLSchema>;
+export type MergerPlugin = (options: MergerOptions) => GraphQLSchema | Promise<GraphQLSchema>;
+
+export type HandlerOptions = {
   action: PluginAction.Handle;
   sourceName: string;
-}>;
-export type TransformPlugin = Plugin<{
+  loader: PluginLoader;
+  config: any;
+};
+
+export type TransformOptions = {
   action: PluginAction.Transform;
   sourceName: string;
   schema: GraphQLSchema;
-}>;
-export type MergerPlugin = Plugin<{
+  loader: PluginLoader;
+  config: any;
+};
+
+export type MergerOptions = {
   action: PluginAction.Merge;
   sources: { name: string; schema: GraphQLSchema }[];
-}>;
-
-type Plugin<T = {}> = (
-  options: {
-    loader: PluginLoader;
-    config: any;
-  } & T
-) => GraphQLSchema | Promise<GraphQLSchema>;
+  loader: PluginLoader;
+  config: any;
+};
 
 export enum PluginAction {
   Handle = "Handle",
