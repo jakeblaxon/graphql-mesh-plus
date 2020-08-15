@@ -65,7 +65,6 @@ async function tryImport(modulePath: string) {
 
 ////////////////////////////////////////////////////////////////
 
-import InMemoryLRUCache from "@graphql-mesh/cache-inmemory-lru";
 import { wrapSchema } from "@graphql-tools/wrap";
 import { PluginAction } from "../types";
 
@@ -86,9 +85,9 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
       return module
         .getMeshSource({
           name: options.sourceName,
-          cache: new InMemoryLRUCache(),
           config: options.config,
           hooks: dummyHooks,
+          cache: undefined,
         })
         .then((result: any) =>
           wrapSchema({
@@ -101,21 +100,18 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
     if (options.action === PluginAction.Transform) {
       return wrapSchema(options.schema, [
         new module({
-          ...(options as any),
+          config: options.config,
           apiName: options.sourceName,
-          cache: new InMemoryLRUCache(),
           hooks: dummyHooks,
+          cache: undefined,
         }),
       ]);
     }
     if (options.action === PluginAction.Merge) {
       return module({
-        rawSources: options.sources.map((source: any) => ({
-          name: source.name,
-          schema: source.schema,
-        })) as any,
-        cache: undefined as any,
+        rawSources: options.sources,
         hooks: dummyHooks,
+        cache: undefined,
         transforms: [],
       });
     }
