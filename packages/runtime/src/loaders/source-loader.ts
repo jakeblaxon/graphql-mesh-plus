@@ -25,7 +25,7 @@ const defaultMerger: MergerPlugin = (options) =>
   });
 
 async function loadHandler(config: HandlerSourceConfig, pluginLoader: PluginLoader) {
-  const [handler, handlerConfig] = await loadPluginFromConfig(config.handler, pluginLoader);
+  const [handler, handlerConfig] = await getPluginFromConfig(config.handler, pluginLoader);
   return (handler as HandlerPlugin)({
     action: PluginAction.Handle,
     sourceName: config.name,
@@ -42,7 +42,7 @@ async function loadMerger(config: MergerSourceConfig, pluginLoader: PluginLoader
     }))
   );
   const [merger, mergerConfig] = config.merger
-    ? await loadPluginFromConfig(config.merger, pluginLoader)
+    ? await getPluginFromConfig(config.merger, pluginLoader)
     : [defaultMerger, null];
   return (merger as MergerPlugin)({
     action: PluginAction.Merge,
@@ -59,7 +59,7 @@ async function applyTransforms(startingSchema: GraphQLSchema, config: SourceConf
   return (config.transforms || []).reduce<Promise<GraphQLSchema>>(
     async (currentSchemaPromise, currentTransformConfig) => {
       const currentSchema = await currentSchemaPromise;
-      const [transform, transformConfig] = await loadPluginFromConfig(currentTransformConfig, pluginLoader);
+      const [transform, transformConfig] = await getPluginFromConfig(currentTransformConfig, pluginLoader);
       const newSchema = await (transform as TransformPlugin)({
         action: PluginAction.Transform,
         sourceName: config.name,
@@ -73,10 +73,10 @@ async function applyTransforms(startingSchema: GraphQLSchema, config: SourceConf
   );
 }
 
-async function loadPluginFromConfig(pluginConfig: PluginConfig, pluginLoader: PluginLoader) {
+async function getPluginFromConfig(pluginConfig: PluginConfig, pluginLoader: PluginLoader) {
   const pluginName = typeof pluginConfig === "string" ? pluginConfig : Object.keys(pluginConfig)[0];
   const config = typeof pluginConfig === "string" ? null : Object.values(pluginConfig)[0];
-  const plugin = await pluginLoader.loadPlugin(pluginName);
+  const plugin = await pluginLoader.getPlugin(pluginName);
   return [plugin, config];
 }
 
