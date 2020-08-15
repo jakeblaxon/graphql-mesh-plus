@@ -13,7 +13,7 @@ export class DefaultPluginLoader implements PluginLoader {
   }
 
   async getPlugin(name: string): Promise<MeshPlugin> {
-    let plugin = this.pluginMap.get(name) || name;
+    let plugin = this.pluginMap.get(name);
     if (typeof plugin === "string") {
       try {
         plugin = (await loadFromModuleExportExpression(plugin)) as MeshPlugin;
@@ -21,12 +21,18 @@ export class DefaultPluginLoader implements PluginLoader {
         try {
           plugin = await getGraphqlMeshPlugin(plugin as string);
         } catch (e2) {
-          throw new Error(`Could not load mesh plugin ${name} from file or graphql-mesh package.`);
+          throw new Error(`Could not find mesh plugin ${name}.`);
         }
+      }
+    } else if (!plugin) {
+      try {
+        plugin = await getGraphqlMeshPlugin(name);
+      } catch (e) {
+        throw new Error(`Could not find mesh plugin ${name}.`);
       }
     }
     if (!plugin) {
-      throw new Error("Could not load mesh plugin " + name);
+      throw new Error(`Could not find mesh plugin ${name}.`);
     }
     this.pluginMap.set(name, plugin);
     return plugin;
@@ -74,15 +80,23 @@ const dummyHooks = {
 };
 
 async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
-  let module: any;
+  let modules: any = {};
   try {
-    module = await loadFromModuleExportExpression("@graphql-mesh/" + name);
-  } catch (e) {
-    module = await loadFromModuleExportExpression("@graphql-mesh/transform-" + name);
-  }
+    modules[PluginAction.Handle] = await loadFromModuleExportExpression("@graphql-mesh/" + name);
+  } catch (e) {}
+  try {
+    modules[PluginAction.Transform] = await loadFromModuleExportExpression("@graphql-mesh/transform-" + name);
+  } catch (e) {}
+  try {
+    modules[PluginAction.Merge] = await loadFromModuleExportExpression("@graphql-mesh/merger-" + name);
+  } catch (e) {}
+
   return async (options: any) => {
     if (options.action === PluginAction.Handle) {
-      return module
+      if (!modules[PluginAction.Handle]) {
+        throw new Error(`Could not find mesh plugin ${name}.`);
+      }
+      return modules[PluginAction.Handle]
         .getMeshSource({
           name: options.sourceName,
           config: options.config,
@@ -96,19 +110,23 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
             subscriber: result.subscriber,
           })
         );
-    }
-    if (options.action === PluginAction.Transform) {
+    } else if (options.action === PluginAction.Transform) {
+      if (!modules[PluginAction.Transform]) {
+        throw new Error(`Could not find mesh plugin ${name}.`);
+      }
       return wrapSchema(options.schema, [
-        new module({
+        new modules[PluginAction.Transform]({
           config: options.config,
           apiName: options.sourceName,
           hooks: dummyHooks,
           cache: undefined,
         }),
       ]);
-    }
-    if (options.action === PluginAction.Merge) {
-      return module({
+    } else if (options.action === PluginAction.Merge) {
+      if (!modules[PluginAction.Merge]) {
+        throw new Error(`Could not find mesh plugin ${name}.`);
+      }
+      return modules[PluginAction.Merge]({
         rawSources: options.sources,
         hooks: dummyHooks,
         cache: undefined,
