@@ -1,3 +1,3 @@
-describe('runtime', () => {
+describe('cli', () => {
   it('dummy', async () => {});
 });
