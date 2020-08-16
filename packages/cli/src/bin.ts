@@ -1,4 +1,4 @@
-import { getMesh } from "graphql-mesh-plus";
+import { getMesh } from "@graphql-mesh-plus/core";
 import * as yargs from "yargs";
 import { createLogger, format, transports } from "winston";
 import { serveMesh } from "./commands/serve";

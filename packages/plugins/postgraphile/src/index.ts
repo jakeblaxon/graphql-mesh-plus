@@ -4,8 +4,9 @@ import { getPostGraphileBuilder } from "postgraphile-core";
 import { Pool } from "pg";
 import { loadFromModuleExportExpression } from "@graphql-mesh/utils";
 import { wrapSchema } from "@graphql-tools/wrap";
+import { HandlerPlugin } from "@graphql-mesh-plus/core";
 
-export default async (options: any) => {
+const handler: HandlerPlugin = async (options: any) => {
   const { config } = options;
   const pgPool = new Pool({
     ...(config?.pool
@@ -77,3 +78,5 @@ export default async (options: any) => {
     },
   });
 };
+
+export default handler;

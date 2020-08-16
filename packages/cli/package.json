@@ -1,6 +1,6 @@
 {
   "name": "@graphql-mesh-plus/cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -16,7 +16,7 @@
     "graphql": "*"
   },
   "dependencies": {
-    "graphql-mesh-plus": "^0.0.8",
+    "@graphql-mesh-plus/core": "^0.0.0",
     "apollo-server": "^2.16.1",
     "winston": "^3.3.3",
     "yargs": "^15.4.1"

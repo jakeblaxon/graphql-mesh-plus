@@ -6,7 +6,7 @@ import { buildFederatedSchema } from "@apollo/federation";
 import { loadTypedefs } from "@graphql-tools/load";
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
 import { CodeFileLoader } from "@graphql-tools/code-file-loader";
-import { PluginAction, MergerPlugin, TransformPlugin, HandlerPlugin } from "graphql-mesh-plus";
+import { PluginAction, MergerPlugin, TransformPlugin, HandlerPlugin } from "@graphql-mesh-plus/core";
 
 export const handler: HandlerPlugin = async (options) =>
   buildFederatedSchema({

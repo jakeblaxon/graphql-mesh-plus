@@ -2,6 +2,7 @@ import { GraphQLFieldResolver } from "graphql";
 import { createBatchDelegateFn } from "@graphql-tools/batch-delegate";
 import { stitchSchemas } from "@graphql-tools/stitch";
 import traverse from "traverse";
+import { TransformPlugin } from "@graphql-mesh-plus/core";
 import {
   applyMapping,
   mapEntitiesToRoots,
@@ -64,9 +65,11 @@ export function createBatchAndMatchResolvers(config: Record<string, Record<strin
   });
 }
 
-export default async (options: any) =>
+const transform: TransformPlugin = async (options) =>
   stitchSchemas({
     subschemas: [options.schema],
     typeDefs: options.config.typeDefs,
     resolvers: createBatchAndMatchResolvers(options.config.resolvers),
   });
+
+export default transform;
