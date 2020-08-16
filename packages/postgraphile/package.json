@@ -1,0 +1,23 @@
+{
+  "name": "@graphql-mesh-plus/postgraphile",
+  "version": "0.0.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "graphql": "*"
+  },
+  "dependencies": {
+    "@graphql-mesh/utils": "^0.2.15",
+    "@graphql-tools/wrap": "^6.0.18",
+    "pg": "^8.3.0",
+    "postgraphile": "^4.7.0",
+    "postgraphile-core": "^4.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.7"
+  }
+}
