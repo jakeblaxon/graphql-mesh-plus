@@ -1,0 +1,35 @@
+{
+  "name": "@graphql-mesh-plus/batch-and-match",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "graphql": "*"
+  },
+  "dependencies": {
+    "@graphql-tools/batch-delegate": "^6.0.18",
+    "@graphql-tools/stitch": "^6.0.18",
+    "@graphql-tools/wrap": "^6.0.15",
+    "jsonpath-plus": "^4.0.0",
+    "lodash": "^4.17.19",
+    "lodash.product": "^18.9.19",
+    "object-hash": "^2.0.3",
+    "traverse": "^0.6.6"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.158",
+    "@types/object-hash": "^1.3.3",
+    "@types/traverse": "^0.6.32",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.3",
+    "typescript": "^3.9.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  }
+}
