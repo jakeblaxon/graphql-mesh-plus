@@ -6,7 +6,15 @@ import { buildFederatedSchema } from "@apollo/federation";
 import { loadTypedefs } from "@graphql-tools/load";
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
 import { CodeFileLoader } from "@graphql-tools/code-file-loader";
-import { PluginAction, MergerPlugin, TransformPlugin, HandlerPlugin } from "@graphql-mesh-plus/core";
+import {
+  PluginAction,
+  MergerPlugin,
+  TransformPlugin,
+  HandlerPlugin,
+  HandlerOptions,
+  TransformOptions,
+  MergerOptions,
+} from "@graphql-mesh-plus/core";
 
 export const handler: HandlerPlugin = async (options) =>
   buildFederatedSchema({
@@ -32,7 +40,7 @@ export const merger: MergerPlugin = (options) =>
     transforms: [],
   });
 
-export default (options: any) => {
+export default (options: HandlerOptions | TransformOptions | MergerOptions) => {
   switch (options.action) {
     case PluginAction.Handle:
       return handler(options);
