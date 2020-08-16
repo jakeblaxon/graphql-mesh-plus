@@ -9,7 +9,7 @@ export * from "./loaders/config-loader";
 export * from "./loaders/plugin-loader";
 export * from "./types";
 
-export async function loadMesh(options?: {
+export async function getMesh(options?: {
   path?: string;
   config?: MeshConfig;
   pluginLoader?: PluginLoader;
