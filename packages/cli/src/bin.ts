@@ -14,17 +14,20 @@ const logger = createLogger({
 });
 
 export async function graphqlMesh() {
-  return yargs.command<{ port: string | number }>(
+  return yargs.command<{ port: string | number; path: string }>(
     "serve",
     "Serves a GraphiQLApolloServer interface to test your Mesh API",
     (builder) => {
       builder.option("port", {
         required: false,
       });
+      builder.option("path", {
+        required: false,
+      });
     },
-    async ({ port }) => {
+    async ({ port, path }) => {
       try {
-        const schema = await getMesh();
+        const schema = await getMesh({ path });
         await serveMesh(logger, schema, port);
       } catch (e) {
         logger.error("Unable to serve mesh: ", e);
