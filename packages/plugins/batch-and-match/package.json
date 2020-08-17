@@ -1,6 +1,6 @@
 {
   "name": "@graphql-mesh-plus/batch-and-match",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@graphql-mesh-plus/core": "^0.0.0",
-    "@graphql-tools/batch-delegate": "^6.0.18",
-    "@graphql-tools/stitch": "^6.0.18",
-    "@graphql-tools/wrap": "^6.0.15",
+    "@graphql-tools/batch-delegate": "6.0.16",
+    "@graphql-tools/stitch": "6.0.15",
+    "@graphql-tools/wrap": "6.0.15",
     "jsonpath-plus": "^4.0.0",
     "lodash": "^4.17.19",
     "lodash.product": "^18.9.19",
