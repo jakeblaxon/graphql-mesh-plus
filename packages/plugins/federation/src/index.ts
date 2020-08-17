@@ -14,6 +14,7 @@ import {
   HandlerOptions,
   TransformOptions,
   MergerOptions,
+  MeshPlugin,
 } from "@graphql-mesh-plus/core";
 
 export const handler: HandlerPlugin = async (options) =>
@@ -40,7 +41,7 @@ export const merger: MergerPlugin = (options) =>
     transforms: [],
   });
 
-export default (options: HandlerOptions | TransformOptions | MergerOptions) => {
+export const plugin: MeshPlugin = (options: HandlerOptions | TransformOptions | MergerOptions) => {
   switch (options.action) {
     case PluginAction.Handle:
       return handler(options);
@@ -50,3 +51,5 @@ export default (options: HandlerOptions | TransformOptions | MergerOptions) => {
       return merger(options);
   }
 };
+
+export default plugin;
