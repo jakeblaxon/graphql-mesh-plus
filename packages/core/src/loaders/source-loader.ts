@@ -35,23 +35,19 @@ async function loadHandler(config: HandlerSourceConfig, pluginLoader: PluginLoad
 }
 
 async function loadMerger(config: MergerSourceConfig, pluginLoader: PluginLoader) {
-  const sources = await Promise.all(
-    config.sources.map(async (sourceConfig) => ({
-      name: sourceConfig.name,
-      schema: await loadSource(sourceConfig, pluginLoader),
-    }))
-  );
   const [merger, mergerConfig] = config.merger
     ? await getPluginFromConfig(config.merger, pluginLoader)
     : [defaultMerger, null];
   return (merger as MergerPlugin)({
     action: PluginAction.Merge,
-    sources: sources.map((source) => ({
-      name: source.name,
-      schema: source.schema,
-    })),
     config: mergerConfig,
     loader: pluginLoader,
+    sources: await Promise.all(
+      config.sources.map(async (sourceConfig) => ({
+        name: sourceConfig.name,
+        schema: await loadSource(sourceConfig, pluginLoader),
+      }))
+    ),
   });
 }
 

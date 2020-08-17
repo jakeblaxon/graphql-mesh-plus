@@ -80,6 +80,7 @@ const dummyHooks = {
 };
 
 async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
+  name = convertToParamCase(name);
   let modules: any = {};
   try {
     modules[PluginAction.Handle] = await loadFromModuleExportExpression("@graphql-mesh/" + name);
@@ -134,4 +135,11 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
       });
     }
   };
+}
+
+function convertToParamCase(name: string) {
+  return name
+    .split(/(?=[A-Z])/)
+    .map((subName) => subName.toLowerCase())
+    .join("-");
 }
