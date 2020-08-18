@@ -1,6 +1,6 @@
 {
   "name": "@graphql-mesh-plus/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -11,6 +11,7 @@
     "graphql": "*"
   },
   "dependencies": {
+    "@graphql-mesh/cache-inmemory-lru": "^0.3.1",
     "@graphql-tools/stitch": "^6.0.15",
     "@graphql-tools/wrap": "^6.0.18",
     "cosmiconfig": "^6.0.0"

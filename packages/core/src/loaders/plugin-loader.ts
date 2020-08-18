@@ -72,6 +72,7 @@ async function tryImport(modulePath: string) {
 ////////////////////////////////////////////////////////////////
 
 import { wrapSchema } from "@graphql-tools/wrap";
+import InMemoryLRUCache from "@graphql-mesh/cache-inmemory-lru";
 import { PluginAction } from "../types";
 
 const dummyHooks = {
@@ -102,15 +103,9 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
           name: options.sourceName,
           config: options.config,
           hooks: dummyHooks,
-          cache: undefined,
+          cache: new InMemoryLRUCache(),
         })
-        .then((result: any) =>
-          wrapSchema({
-            schema: result.schema,
-            executor: result.executor,
-            subscriber: result.subscriber,
-          })
-        );
+        .then((result: any) => wrapSchema(result));
     } else if (options.action === PluginAction.Transform) {
       if (!modules[PluginAction.Transform]) {
         throw new Error(`Could not find mesh plugin ${name}.`);
@@ -120,7 +115,7 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
           config: options.config,
           apiName: options.sourceName,
           hooks: dummyHooks,
-          cache: undefined,
+          cache: new InMemoryLRUCache(),
         }),
       ]);
     } else if (options.action === PluginAction.Merge) {
@@ -130,7 +125,7 @@ async function getGraphqlMeshPlugin(name: string): Promise<MeshPlugin> {
       return modules[PluginAction.Merge]({
         rawSources: options.sources,
         hooks: dummyHooks,
-        cache: undefined,
+        cache: new InMemoryLRUCache(),
         transforms: [],
       });
     }
