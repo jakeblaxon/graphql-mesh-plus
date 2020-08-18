@@ -9,10 +9,4 @@ exports.openApi = (options) =>
       config: options.config,
       cache: new InMemoryLRUCache(),
     })
-    .then((result) =>
-      wrapSchema({
-        schema: result.schema,
-        executor: result.executor,
-        subscriber: result.subscriber,
-      })
-    );
+    .then((result) => wrapSchema(result));
