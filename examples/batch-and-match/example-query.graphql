@@ -1,0 +1,11 @@
+{
+  a_cities(first: 10) {
+    name
+    bCity {
+      name
+    }
+    citiesInDistrict {
+      name
+    }
+  }
+}

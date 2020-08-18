@@ -1,0 +1,13 @@
+version: "3.1"
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 4000:4000
+  db:
+    container_name: world_db
+    image: aa8y/postgres-dataset:world
+    restart: always

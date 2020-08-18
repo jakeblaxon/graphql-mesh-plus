@@ -1,0 +1,77 @@
+plugins:
+  - batchAndMatch: "@graphql-mesh-plus/batch-and-match"
+
+mesh:
+  sources:
+    - name: postgres-dbs
+      sources:
+        - name: a
+          handler:
+            postgraphile:
+              connectionString: postgres://postgres:postgres@world_db:5432/world
+              schemaName:
+                - public
+              appendPlugins:
+                - "@graphile-contrib/pg-simplify-inflector"
+                - "postgraphile-plugin-connection-filter"
+              skipPlugins:
+                - graphile-build#NodePlugin
+                - graphile-build#MutationPlugin
+                - graphile-build#SubscriptionPlugin
+              options:
+                simpleCollections: "only"
+                graphileBuildOptions: {pgOmitListSuffix: true}
+          transforms:
+            - prefix:
+                includeRootOperations: true
+        - name: b
+          handler:
+            postgraphile:
+              connectionString: postgres://postgres:postgres@world_db:5432/world
+              schemaName:
+                - public
+              appendPlugins:
+                - "@graphile-contrib/pg-simplify-inflector"
+                - "postgraphile-plugin-connection-filter"
+              skipPlugins:
+                - graphile-build#NodePlugin
+                - graphile-build#MutationPlugin
+                - graphile-build#SubscriptionPlugin
+              options:
+                simpleCollections: "only"
+                graphileBuildOptions: {pgOmitListSuffix: true}
+          transforms:
+            - prefix:
+                includeRootOperations: true
+      transforms:
+        - batchAndMatch:
+            typeDefs: |
+              extend type a_City {
+                bCity: b_City
+                citiesInDistrict: [b_City!]!
+                bCountry: [b_Country]
+              }
+              extend type b_Country {
+                aCities: [a_City]
+              }
+            resolvers:
+              a_City:
+                bCity:
+                  queryName: "b_cities"
+                  argsMapping: { filter: { id: { in: "roots[*].id" } } }
+                  keyMapping: { id: "root.id" }
+                citiesInDistrict:
+                  queryName: "b_cities"
+                  argsMapping:
+                    filter: { district: { in: "roots[*].district" } }
+                    and: { id: { in: "roots[*].id" } }
+                  keyMapping: {district: "root.district" }
+                bCountry:
+                  queryName: "bCountries"
+                  argsMapping: { filter: { code: { in: "roots[*].countrycode" } } }
+                  keyMapping: { other_cities: {id: "root.id"} }
+              b_Country:
+                aCities:
+                  queryName: "a_cities"
+                  argsMapping: { filter: { countrycode: { in: "roots[*].code" } } }
+                  keyMapping: { countrycode: "root.code" }
