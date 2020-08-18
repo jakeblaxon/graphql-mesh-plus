@@ -1,0 +1,27 @@
+plugins:
+  - "federationHandler": plugins#federationHandler
+
+mesh:
+  name: Mesh
+  merger: federation
+  sources:
+    - name: acounts
+      handler:
+        federationHandler:
+          typeDefs: services/accounts#typeDefs
+          resolvers: services/accounts#resolvers
+    - name: inventory
+      handler:
+        federationHandler:
+          typeDefs: services/inventory#typeDefs
+          resolvers: services/inventory#resolvers
+    - name: products
+      handler:
+        federationHandler:
+          typeDefs: services/products#typeDefs
+          resolvers: services/products#resolvers
+    - name: reviews
+      handler:
+        federationHandler:
+          typeDefs: services/reviews#typeDefs
+          resolvers: services/reviews#resolvers

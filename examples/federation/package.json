@@ -1,0 +1,16 @@
+{
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "mesh serve"
+  },
+  "dependencies": {
+    "@apollo/federation": "^0.19.1",
+    "@graphql-mesh-plus/cli": "0.0.3",
+    "@graphql-mesh-plus/core": "0.0.2",
+    "@graphql-mesh/graphql": "^0.3.1",
+    "@graphql-mesh/merger-federation": "^0.3.1",
+    "@graphql-mesh/utils": "^0.3.0",
+    "graphql": "^15.3.0"
+  }
+}

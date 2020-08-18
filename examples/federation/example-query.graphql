@@ -1,0 +1,19 @@
+{
+  me {
+    name
+    reviews {
+      body
+      product {
+        name
+      }
+      author {
+        id
+        name
+        username
+        reviews {
+          body
+        }
+      }
+    }
+  }
+}
