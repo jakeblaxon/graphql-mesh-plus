@@ -1,6 +1,6 @@
 {
   "name": "@graphql-mesh-plus/batch-and-match",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
