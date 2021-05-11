@@ -16,7 +16,7 @@
     "@graphql-tools/stitch": "6.0.15",
     "@graphql-tools/wrap": "6.0.15",
     "jsonpath-plus": "^4.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "lodash.product": "^18.9.19",
     "object-hash": "^2.0.3",
     "traverse": "^0.6.6"
