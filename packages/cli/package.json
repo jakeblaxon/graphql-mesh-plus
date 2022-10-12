@@ -17,7 +17,7 @@
     "@graphql-mesh-plus/core": "^0.0.1"
   },
   "dependencies": {
-    "apollo-server": "^2.16.1",
+    "apollo-server": "^2.25.4",
     "winston": "^3.3.3",
     "yargs": "^15.4.1"
   },
